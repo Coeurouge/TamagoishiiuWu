@@ -1,621 +1,345 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>Mini-jeu Carte Shiny</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Police (optionnel) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <title>Tamagotchi Echomori Style 🎸</title>
 
+  <!-- Google Fonts (balises <link> correctes) -->
+  https://fonts.googleapis.com
+  https://fonts.gstatic.com
+  https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap
+
+  <!-- Votre feuille de style -->
+  style.css?v=2
+
+  <!-- Styles spécifiques au mini-jeu (ajoutés ici pour que ça marche direct) -->
   <style>
-:root {
-  --bg: #0e0f19;
-  --panel: #161826;
-  --text: #e7e9f3;
-  --muted: #a8adbd;
-  --primary: #ffd54f;   /* doré étoile */
-  --primary-ink: #3b2f0b;
-  --accent: #8ab4ff;
-  --ring: rgba(255, 213, 79, 0.35);
-}
+    /* ===== Mini-jeu: grille & cartes ===== */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 140px));
+      gap: 1rem;
+      justify-content: center;
+      margin: 1rem 0 1.2rem;
+    }
+    .card {
+      appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      perspective: 800px; /* effet 3D pour la rotation */
+    }
+    .card:disabled { cursor: not-allowed; opacity: 0.7; }
 
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: radial-gradient(1200px circle at 20% 10%, #121323, var(--bg));
-  color: var(--text);
-  line-height: 1.6;
-}
+    .card-inner {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      border-radius: 12px;
+      border: 1px solid #2a2e44;
+      background: #15172a;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 420ms ease;
+    }
+    .card.flipped .card-inner { transform: rotateY(180deg); }
 
-/* ===== Header ===== */
-.site-header {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(14, 15, 25, 0.8);
-  -webkit-backdrop-filter: blur(8px); /* iOS Safari */
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid #23263a;
-  padding: 0.75rem 1rem;
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      backface-visibility: hidden;
+    }
+    .card-face.back {
+      color: var(--muted);
+      font-size: 1.4rem;
+    }
+    .card-face.front {
+      transform: rotateY(180deg);
+      position: relative; /* pour les effets ::before/::after */
+      overflow: hidden;
+      background: #0f1122; /* fond si image plus petite */
+    }
 
-  /* Desktop : titre à gauche, boutons à droite */
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 1rem;
-}
+    /* Image de face */
+    .card-face.front .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+    }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 700;
-  min-width: 0;           /* évite des compressions étranges */
-}
-.logo { font-size: 1.4rem; }
+    /* Perdu : un léger feedback visuel */
+    .card.revealed.lose .card-face.front .card-img {
+      filter: grayscale(100%) opacity(0.9);
+    }
 
-/* Évite la casse caractère par caractère (japonais) */
-.title {
-  letter-spacing: 0.2px;
-  white-space: nowrap;    /* pas de retour à la ligne */
-  word-break: keep-all;   /* évite la césure idéographique */
-}
+    /* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
+    .card.revealed.win .card-face.front .card-img {
+      filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
+    }
+    .card.revealed.win .card-face.front::before {
+      /* halo doré autour */
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: 14px;
+      box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
+    }
+    .card.revealed.win .card-face.front::after {
+      /* balayage "shimmer" */
+      content: "";
+      position: absolute;
+      top: -20%;
+      left: -120%;
+      width: 60%;
+      height: 140%;
+      transform: rotate(20deg);
+      background: linear-gradient(
+        to right,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.65) 50%,
+        rgba(255,255,255,0) 100%
+      );
+      mix-blend-mode: screen;
+      animation: shimmer-sweep 1.6s ease-in-out infinite;
+    }
+    @keyframes shimmer-sweep {
+      0%   { left: -120%; }
+      50%  { left: 0%; }
+      100% { left: 120%; }
+    }
 
-/* ===== Tabs ===== */
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.tab {
-  appearance: none;
-  border: 1px solid #2a2e44;
-  color: var(--text);
-  background: #15172a;
-  padding: 0.5rem 0.8rem;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: 120ms ease;
-}
-.tab:hover { border-color: var(--accent); }
-.tab.active {
-  background: var(--primary);
-  color: var(--primary-ink);
-  border-color: var(--primary);
-  box-shadow: 0 0 0 6px var(--ring);
-}
+    .game-actions {
+      display: grid;
+      justify-items: center;
+      gap: 0.8rem;
+    }
+    .game-status { min-height: 1.2rem; color: var(--text); }
 
-/* ===== Main and panels ===== */
-main {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-.panel {
-  display: none;
-  background: var(--panel);
-  border: 1px solid #23263a;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-}
-.panel.visible { display: block; }
-
-h1, h2 { margin-top: 0; }
-h1 { font-size: 2rem; }
-h2 { font-size: 1.6rem; }
-
-.hero { margin: 1rem 0; text-align: center; }
-.hero img {
-  width: 100%;
-  max-width: 640px;
-  border-radius: 16px;
-  border: 1px solid #2a2e44;
-}
-.hero figcaption {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.cta-row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-.btn {
-  display: inline-block;
-  text-decoration: none;
-  color: var(--text);
-  border: 1px solid #2a2e44;
-  background: #15172a;
-  padding: 0.6rem 1rem;
-  border-radius: 12px;
-  transition: 120ms ease;
-}
-.btn:hover { border-color: var(--accent); }
-.btn.primary {
-  background: var(--primary);
-  color: var(--primary-ink);
-  border-color: var(--primary);
-}
-
-.steps { padding-left: 1rem; }
-.tips { margin-top: 1rem; color: var(--muted); }
-
-.downloads {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 0.6rem;
-}
-
-/* ===== Footer ===== */
-.site-footer {
-  text-align: center;
-  color: var(--muted);
-  margin: 2rem 0 3rem;
-}
-.site-footer small { display: block; }
-.site-footer .edition {
-  font-size: 0.85em;   /* un peu plus discret */
-  opacity: 0.8;
-}
-
-/* ===== Section "Comment ça marche ?" (plus aérée) ===== */
-#how.panel {
-  padding: 2rem;         /* plus d'air autour du contenu */
-  line-height: 1.8;      /* interligne plus confortable */
-}
-#how h2 {
-  margin-bottom: 1rem;   /* espace sous le titre */
-  text-align: center;    /* centrer le titre */
-}
-#how .steps {
-  padding-left: 1.2rem;  /* léger retrait pour la liste */
-  margin-bottom: 1.5rem; /* espace sous la liste */
-}
-#how .steps li {
-  margin-bottom: 0.8rem; /* espace entre chaque étape */
-}
-#how .lore {
-  margin-top: 1.5rem;    /* espace avant le bloc lore */
-  padding: 1rem;
-  border-top: 1px solid #2a2e44; /* séparation discrète */
-  font-size: 0.95rem;
-}
-
-/* ===== Mini-jeu: grille, cartes & effet shiny ===== */
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(90px, 140px));
-  gap: 1rem;
-  justify-content: center;
-  margin: 1rem 0 1.2rem;
-}
-.card {
-  appearance: none;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  perspective: 800px; /* effet 3D pour la rotation */
-}
-.card:disabled { cursor: not-allowed; opacity: 0.7; }
-
-.card-inner {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 12px;
-  border: 1px solid #2a2e44;
-  background: #15172a;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 420ms ease;
-}
-.card.flipped .card-inner { transform: rotateY(180deg); }
-
-.card-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  backface-visibility: hidden;
-}
-.card-face.back {
-  color: var(--muted);
-  font-size: 1.4rem;
-}
-.card-face.front {
-  transform: rotateY(180deg);
-  position: relative; /* pour les effets ::before/::after */
-  overflow: hidden;
-  background: #0f1122; /* fond si image plus petite */
-}
-
-/* Image de face */
-.card-face.front .card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 12px;
-  display: block;
-}
-
-/* Perdu : un léger feedback visuel */
-.card.revealed.lose .card-face.front .card-img {
-  filter: grayscale(100%) opacity(0.9);
-}
-
-/* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
-.card.revealed.win .card-face.front .card-img {
-  filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
-}
-.card.revealed.win .card-face.front::before {
-  /* halo doré autour */
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 14px;
-  box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
-}
-.card.revealed.win .card-face.front::after {
-  /* balayage "shimmer" */
-  content: "";
-  position: absolute;
-  top: -20%;
-  left: -120%;
-  width: 60%;
-  height: 140%;
-  transform: rotate(20deg);
-  background: linear-gradient(
-    to right,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.65) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  mix-blend-mode: screen;
-  animation: shimmer-sweep 1.6s ease-in-out infinite;
-}
-@keyframes shimmer-sweep {
-  0%   { left: -120%; }
-  50%  { left: 0%; }
-  100% { left: 120%; }
-}
-
-.game-actions {
-  display: grid;
-  justify-items: center;
-  gap: 0.8rem;
-}
-.game-status { min-height: 1.2rem; color: var(--text); }
-
-/* ===== Responsive téléphone ===== */
-/* 📱 Sur mobile : une seule colonne → titre en haut, boutons en dessous */
-@media (max-width: 768px) {
-  .site-header {
-    display: grid;
-    grid-template-columns: 1fr;   /* une seule colonne */
-    grid-auto-rows: auto;
-    row-gap: 10px;
-    justify-items: center;        /* centre les contenus */
-  }
-
-  .brand {
-    grid-column: 1;               /* première ligne : logo + titre */
-    justify-self: center;         /* centre le bloc (mets start si tu préfères à gauche) */
-  }
-
-  .tabs {
-    grid-column: 1;               /* ligne suivante → SOUS le titre */
-    justify-content: center;      /* centre les boutons */
-  }
-
-  /* Optionnel : réduction légère si écran très étroit */
-  .title { font-size: 0.95rem; }
-}
-
-/* Option bonus : micro-ajustement sous 360px */
-@media (max-width: 360px) {
-  .tab { padding: 0.45rem 0.7rem; }
-  .game-grid {
-    grid-template-columns: repeat(3, minmax(80px, 110px));
-    gap: 0.8rem;
-  }
-}
+    /* Responsive: un peu plus d'air sur mobile */
+    @media (max-width: 640px) {
+      .game-grid {
+        grid-template-columns: repeat(3, minmax(80px, 110px));
+        gap: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <!-- ===== En-tête ===== -->
   <header class="site-header">
     <div class="brand">
-      <div class="logo">✨</div>
-      <div class="title">Mini‑jeu Carte Shiny</div>
+      <span class="logo" aria-hidden="true">🎸</span>
+      <span class="title">タマゴッチ エコモリスタイル</span>
     </div>
+
     <nav class="tabs" aria-label="Navigation principale">
-      <button class="tab active" data-target="#game">Jeu</button>
-      <button class="tab" data-target="#how">Comment ça marche ?</button>
+      <button class="tab active" data-target="home">Accueil</button>
+      <button class="tab" data-target="how">Comment ça marche ?</button>
+      <button class="tab" data-target="contact">Contact</button>
+      <!-- 🆕 Onglet Mini-jeu -->
+      <button class="tab" data-target="minigame">Mini‑jeu</button>
     </nav>
   </header>
 
-  <!-- ===== Contenu principal ===== -->
   <main>
-    <!-- ===== Panneau Jeu ===== -->
-    <section id="game" class="panel visible" aria-label="Mini-jeu">
-      <h1>Trouve la carte shiny ✨</h1>
-      <p>Sélectionne une carte. Une seule est <strong>shiny</strong> à chaque partie.</p>
+    <!-- Accueil -->
+    <section id="home" class="panel visible" tabindex="0">
+      <h1> 最もユニークなたまごっち </h1>
+      <p> YIYIYIYIYIYIII🔥! Voici ton nouveau tamagotchi dans une édition super limitée : <strong> Echomori Style 🐟 </strong> — LE tamagotchi que tout le monde s'arrache (diponible en un seul exemplaire !).</p>
+      <figure class="hero">
+        assets/images/cover.png
+        <figcaption>Ton groupe de ROCKSTARS à portée de main</figcaption>
+      </figure>
+      <div class="cta-row">
+        #howComment ça marche ?</a>
+        #contactUne réclamation ? c'est ici</a>
+      </div>
+    </section>
 
-      <div class="game-grid" id="gameGrid" aria-live="polite">
-        <!-- 10 cartes (3x4 visuel, mais 10 items) -->
-        <!-- Tu peux remplacer le contenu de .card-face.front par une <img class="card-img" src="images/xxx.jpg" alt=""> -->
-        <!-- Garder data-index 0..9 uniquement si tu veux exploiter l’index; ici on va marquer la shiny via data-shiny pour éviter toute désynchro -->
+    <!-- Comment ça marche -->
+    <section id="how" class="panel" tabindex="0">
+      <h2>Comment ça marche ?</h2>
+
+      <ol class="steps">
+        <li>Appuie sur les boutons de droite et de gauche simultanément <strong>pendant 5 secondes</strong> pour allumer/éteindre le tamagotchi.</li>
+        <li>Fais-le grandir, monte ton groupe et <strong>SLAY GIRLLLL</strong> 💅 !</li>
+        <li>Plus tu t’en occupes, plus IL DEVIENT UNE ROCKSTAR D'EXCEPTION 🔥.</li>
+        <li>Prends en soin (faim, hygiène, sommeil), SINON IL MEURT ☠️.</li>
+      </ol>
+
+      <div class="lore" style="text-align: center;">
+        <p class="hidden-lore" style="opacity: 0.35; font-style: italic;">
+          Ce tamagotchi n’apparaît qu’une fois par génération.
+        </p>
+        <p style="opacity: 0.35; font-style: italic;">
+          Tu as été choisie. Bonne chance. 🐟✨
+        </p>
+      </div>
+    </section>
+
+    <!-- 🕹️ Mini‑jeu -->
+    <section id="minigame" class="panel" tabindex="0" aria-labelledby="minigame-title">
+      <h2 id="minigame-title">Mini‑jeu : Trouve la carte qui brille</h2>
+      <p style="color: var(--muted); margin-top: -0.5rem;">
+        Clique sur une des trois cartes. Si tu trouves la shiny, elle brille ✨ !
+      </p>
+
+      <!-- Grille de cartes -->
+      <div class="game-grid" role="group" aria-label="Cartes du mini-jeu">
         <button class="card" data-index="0" aria-label="Carte 1">
           <div class="card-inner">
-            <div class="card-face back">?</div>
+            <div class="card-face back" aria-hidden="true">?</div>
             <div class="card-face front">
-              <!-- Placeholder visuel -->
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 1
-              </div>
+              <img class="card-img" src="" alt="Carte" />
             </div>
           </div>
         </button>
 
         <button class="card" data-index="1" aria-label="Carte 2">
           <div class="card-inner">
-            <div class="card-face back">?</div>
+            <div class="card-face back" aria-hidden="true">?</div>
             <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 2
-              </div>
+              <img class="card-img" src="" alt="Carte" />
             </div>
           </div>
         </button>
 
         <button class="card" data-index="2" aria-label="Carte 3">
           <div class="card-inner">
-            <div class="card-face back">?</div>
+            <div class="card-face back" aria-hidden="true">?</div>
             <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 3
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="3" aria-label="Carte 4">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 4
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="4" aria-label="Carte 5">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 5
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="5" aria-label="Carte 6">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 6
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="6" aria-label="Carte 7">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 7
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="7" aria-label="Carte 8">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 8
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="8" aria-label="Carte 9">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 9
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="9" aria-label="Carte 10">
-          <div class="card-inner">
-            <div class="card-face back">?</div>
-            <div class="card-face front">
-              <div class="card-img" style="display:grid;place-items:center;color:#cbd2ff;font-weight:600;font-size:1.2rem;">
-                Carte 10
-              </div>
+              <img class="card-img" src="" alt="Carte" />
             </div>
           </div>
         </button>
       </div>
 
+      <!-- Zone d’état + actions -->
       <div class="game-actions">
-        <div class="game-status" id="gameStatus" aria-live="polite"></div>
-        <div class="cta-row">
-          <button class="btn primary" id="restartBtn">Rejouer</button>
-          <!-- Option : bouton pour "révéler tout" pour debug -->
-          <button class="btn" id="revealBtn" title="Révéler (debug)">Révéler</button>
-        </div>
+        <p class="game-status" aria-live="polite"></p>
+        <button class="btn primary" id="replay-btn" type="button">Rejouer</button>
       </div>
     </section>
 
-    <!-- ===== Panneau Explications ===== -->
-    <section id="how" class="panel" aria-label="Explications">
-      <h2>Comment ça marche ?</h2>
-      <ol class="steps">
-        <li>À chaque partie, une carte aléatoire est marquée comme <strong>shiny</strong>.</li>
-        <li>Clique sur une carte pour la retourner.</li>
-        <li>Si c’est la shiny → 🎉 tu gagnes. Sinon, réessaie (selon les règles de ta promo).</li>
-      </ol>
-      <div class="lore">
-        <p>
-          Techniquement, la shiny est définie <em>dans le DOM</em> via <code>data-shiny</code>.  
-          Ça évite toute désynchronisation entre l’index logique et l’ordre visuel après un éventuel mélange.
-        </p>
+    <!-- Contact -->
+    <section id="contact" class="panel" tabindex="0">
+      <h2>Contact</h2>
+      <p>Tu n'es pas satisfaite de ton produit ? Dépose une réclamation ici :</p>
+      assets/images/chat_triste.jpg
+      <div class="cta-row">
+        mailto:etournoux@hotmail.frC'EST PAS SYMPA</a>
+        #homeRevenir à l’accueil</a>
       </div>
     </section>
   </main>
 
-  <!-- ===== Pied de page ===== -->
   <footer class="site-footer">
-    <small>© 2026 — Mini‑jeu Carte Shiny</small>
-    <small class="edition">Build démo</small>
+    <small>© Tamagotchi Echomori Style 🐟.</small>
+    <small class="edition">Edition unique et limitée</small>
   </footer>
 
-  <!-- ===== JS ===== -->
+  <!-- Script du mini-jeu (utilise assets/images/{1..10,shiny}.png) -->
   <script>
-  (function () {
-    // ---- Tabs simples
-    const tabs = Array.from(document.querySelectorAll('.tab'));
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+    (function () {
+      const IMG_PATH = 'assets/images';  // 📂 change si besoin (ex: 'assets/cards')
+      const IMG_EXT  = 'jpg';            // 🖼️ change si besoin (png/jpg/webp)
 
-        const targetSel = tab.getAttribute('data-target');
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
-        const target = document.querySelector(targetSel);
-        if (target) target.classList.add('visible');
-      });
-    });
+      const panel      = document.getElementById('minigame');
+      const grid       = panel?.querySelector('.game-grid');
+      const statusEl   = panel?.querySelector('.game-status');
+      const replayBtn  = document.getElementById('replay-btn');
+      if (!panel || !grid || !statusEl || !replayBtn) return;
 
-    // ---- Jeu
-    const grid = document.getElementById('gameGrid');
-    const cards = Array.from(grid.querySelectorAll('.card'));
-    const status = document.getElementById('gameStatus');
-    const restartBtn = document.getElementById('restartBtn');
-    const revealBtn = document.getElementById('revealBtn');
+      let winningIndex = 0;
+      let locked = false;
 
-    let gameOver = false;
-    let clicksEnabled = true;
-
-    const randInt = (max) => Math.floor(Math.random() * max);
-
-    // (Optionnel) Mélanger l'ordre visuel des cartes au chargement
-    function shuffleCardsInDom() {
-      // Si tu veux mélanger: décommente le block
-      // const frag = document.createDocumentFragment();
-      // const shuffled = [...cards].sort(() => Math.random() - 0.5);
-      // shuffled.forEach(c => frag.appendChild(c));
-      // grid.appendChild(frag);
-      // ⚠️ Si tu actives ça, NE TE SERS PAS des index pour la shiny, on utilise data-shiny (cf. resetBoard)
-    }
-
-    function clearShinyMarks() {
-      cards.forEach(c => { delete c.dataset.shiny; });
-    }
-
-    function markOneShiny() {
-      const shinyCard = cards[randInt(cards.length)];
-      shinyCard.dataset.shiny = "1";
-    }
-
-    function resetBoard() {
-      // Nettoyage visuel & interaction
-      cards.forEach(card => {
-        card.classList.remove('flipped', 'revealed', 'win', 'lose');
-        card.disabled = false;
-      });
-
-      // Re-mark unique shiny
-      clearShinyMarks();
-      markOneShiny();
-
-      // État global
-      gameOver = false;
-      clicksEnabled = true;
-      status.textContent = "Clique sur une carte pour tenter ta chance ✨";
-    }
-
-    function handleWin(clickedCard) {
-      clickedCard.classList.add('win');
-      status.textContent = "🎉 Bravo, carte shiny ! Tu as gagné.";
-      gameOver = true;
-      // Bloquer toutes les cartes après victoire
-      cards.forEach(c => c.disabled = true);
-      // Ici tu peux déclencher un callback, un fetch, etc. pour enregistrer la victoire
-    }
-
-    function handleLose(clickedCard) {
-      clickedCard.classList.add('lose');
-      status.textContent = "Raté… Essaie encore !";
-      // Si ta règle = 1 essai, décommente :
-      // gameOver = true;
-      // cards.forEach(c => c.disabled = true);
-    }
-
-    function onCardClick(e) {
-      const card = e.currentTarget;
-      if (!clicksEnabled || gameOver) return;
-      if (card.classList.contains('flipped')) return;
-
-      card.classList.add('flipped', 'revealed');
-
-      // Vérif synchronisée sur le DOM (data-shiny), zéro dépendance d’index
-      if (card.dataset.shiny === "1") {
-        handleWin(card);
-      } else {
-        handleLose(card);
+      function pickTwoDistinctNormalImages() {
+        const pool = Array.from({ length: 10 }, (_, i) => `${IMG_PATH}/${i + 1}.${IMG_EXT}`);
+        // Mélange (Fisher–Yates)
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool.slice(0, 2);
       }
-    }
 
-    // Wire events
-    cards.forEach(card => card.addEventListener('click', onCardClick));
-    restartBtn.addEventListener('click', resetBoard);
+      function initGame() {
+        winningIndex = Math.floor(Math.random() * 3);
+        locked = false;
+        statusEl.textContent = "Choisis une carte…";
 
-    // Bouton debug : révèle tout (utile pour vérifier l’unicité shiny)
-    revealBtn.addEventListener('click', () => {
-      cards.forEach(card => {
-        if (!card.classList.contains('flipped')) {
-          card.classList.add('flipped', 'revealed');
-        }
-        if (card.dataset.shiny === "1") {
-          card.classList.add('win');
+        const normals = pickTwoDistinctNormalImages();
+        const cards = grid.querySelectorAll('.card');
+
+        cards.forEach((card, idx) => {
+          const img = card.querySelector('.card-img');
+          const src = (idx === winningIndex)
+            ? `${IMG_PATH}/shiny.${IMG_EXT}`
+            : normals.pop();
+
+          img.src = src;
+          img.alt = (idx === winningIndex) ? "Carte shiny" : "Carte";
+
+          card.classList.remove('flipped', 'revealed', 'win', 'lose');
+          card.disabled = false;
+          card.dataset.index = String(idx);
+        });
+      }
+
+      function reveal(clickedCard) {
+        if (locked) return;
+        locked = true;
+
+        const clickedIndex = Number(clickedCard.dataset.index);
+        const cards = Array.from(grid.querySelectorAll('.card'));
+
+        // Retourne toutes les cartes (révèle la face)
+        cards.forEach(c => {
+          c.classList.add('flipped', 'revealed');
+          c.disabled = true;
+        });
+
+        // Active l’effet brillant sur la shiny
+        const shinyCard = cards[winningIndex];
+        shinyCard.classList.add('win');
+
+        if (clickedIndex !== winningIndex) {
+          clickedCard.classList.add('lose');
+          statusEl.textContent = "🙈 Raté… Essaie encore avec Rejouer.";
         } else {
-          card.classList.add('lose');
+          statusEl.textContent = "✨ Bravo ! Carte shiny trouvée !";
         }
-      });
-      status.textContent = "Révélé (debug).";
-      gameOver = true;
-      cards.forEach(c => c.disabled = true);
-    });
+      }
 
-    // Initialisation
-    shuffleCardsInDom(); // inactif par défaut
-    resetBoard();
-  })();
+      // Clic sur les cartes
+      grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.card');
+        if (!card) return;
+        reveal(card);
+      });
+
+      // Rejouer
+      replayBtn.addEventListener('click', initGame);
+
+      // Démarrage : initialise quand on ouvre l’onglet Mini‑jeu
+      const observer = new MutationObserver(() => {
+        if (panel.classList.contains('visible')) initGame();
+      });
+      observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
+      // Cas où le panel est déjà visible au chargement
+      if (panel.classList.contains('visible')) initGame();
+    })();
   </script>
+
+  <!-- Ton script existant -->
+  script.js</script>
 </body>
 </html>
