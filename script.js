@@ -40,7 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const initial = Array.from(tabs).find(t => t.dataset.target === hash) || tabs[0];
   initial.click();
 
-  // ====== Initialiser le mini-jeu une fois le DOM prêt ======
+  // Initialiser le mini-jeu après chargement
   initShinyGame();
 });
 
@@ -53,10 +53,9 @@ function initShinyGame() {
   const restartBtn = document.getElementById('restartBtn');
   const revealBtn = document.getElementById('revealBtn');
 
-  // Sélectionne les cartes *dynamiquement* (au cas où le DOM change)
-  let cards = grid ? Array.from(grid.querySelectorAll('.card')) : [];
+  if (!grid || !status || !restartBtn) return; // Si pas de mini-jeu, on sort
 
-  // État global du jeu
+  let cards = Array.from(grid.querySelectorAll('.card'));
   let gameOver = false;
   let clicksEnabled = true;
 
@@ -67,68 +66,60 @@ function initShinyGame() {
   }
 
   function markOneShiny() {
-    if (cards.length === 0) return;
     const shinyCard = cards[randInt(cards.length)];
     shinyCard.dataset.shiny = '1';
   }
 
-  function resetBoard() {
-    // (re)lier les cartes si la grille a été modifiée
-    cards = grid ? Array.from(grid.querySelectorAll('.card')) : [];
+  function wireCardEvents() {
+    cards.forEach(card => {
+      const clone = card.cloneNode(true);
+      card.replaceWith(clone);
+    });
+    cards = Array.from(grid.querySelectorAll('.card'));
+    cards.forEach(card => card.addEventListener('click', onCardClick));
+  }
 
-    // Nettoyer visuel & interactions
+  function resetBoard() {
+    cards = Array.from(grid.querySelectorAll('.card'));
     cards.forEach(card => {
       card.classList.remove('flipped', 'revealed', 'win', 'lose');
       card.disabled = false;
     });
 
-    // Poser une shiny unique
     clearShinyMarks();
     markOneShiny();
 
-    // Reset état global & message
     gameOver = false;
     clicksEnabled = true;
-    if (status) status.textContent = 'Clique sur une carte pour tenter ta chance ✨';
-
-    // Retirer l'effet de victoire global
+    status.textContent = 'Clique sur une carte pour tenter ta chance ✨';
     document.body.classList.remove('win-effect');
 
-    // Rewire des événements (au cas où le DOM a été reconstruit)
     wireCardEvents();
   }
 
-  function handleWin(clickedCard) {
-    clickedCard.classList.add('win');
-    if (status) status.textContent = '🎉 Bravo, carte shiny ! Tu as gagné.';
+  function handleWin(card) {
+    card.classList.add('win');
+    status.textContent = '🎉 Bravo, carte shiny ! Tu as gagné.';
     gameOver = true;
-
-    // Bloquer les autres cartes
     cards.forEach(c => c.disabled = true);
-
-    // Animation CSS globale (optionnelle)
     document.body.classList.add('win-effect');
-
-    // TODO: déclencher ici un fetch/event pour enregistrer la victoire côté serveur
   }
 
-  function handleLose(clickedCard) {
-    clickedCard.classList.add('lose');
-    if (status) status.textContent = 'Raté… Essaie encore !';
-    // Si ta règle == 1 essai par partie, décommente :
+  function handleLose(card) {
+    card.classList.add('lose');
+    status.textContent = 'Raté… Essaie encore !';
+    // Pour un seul essai : décommente
     // gameOver = true;
     // cards.forEach(c => c.disabled = true);
   }
 
   function onCardClick(e) {
     const card = e.currentTarget;
-    if (!clicksEnabled || gameOver) return;                // jeu bloqué ?
-    if (card.classList.contains('flipped')) return;        // déjà retournée ?
+    if (!clicksEnabled || gameOver) return;
+    if (card.classList.contains('flipped')) return;
 
-    // Retourner la carte (flip visuel)
     card.classList.add('flipped', 'revealed');
 
-    // Déterminer victoire/échec via data-shiny (insensible à l'ordre DOM)
     if (card.dataset.shiny === '1') {
       handleWin(card);
     } else {
@@ -136,41 +127,23 @@ function initShinyGame() {
     }
   }
 
-  function wireCardEvents() {
-    cards.forEach(card => {
-      // enlever potentiels anciens listeners en recréant proprement
-      card.replaceWith(card.cloneNode(true));
-    });
-    // Re-sélectionner les clones (remplacent les originaux)
-    cards = grid ? Array.from(grid.querySelectorAll('.card')) : [];
-    cards.forEach(card => card.addEventListener('click', onCardClick));
-  }
+  restartBtn.addEventListener('click', resetBoard);
 
-  // Bouton "Rejouer"
-  if (restartBtn) {
-    restartBtn.addEventListener('click', resetBoard);
-  }
-
-  // Bouton "Révéler" (debug)
   if (revealBtn) {
     revealBtn.addEventListener('click', () => {
       cards.forEach(card => {
-        if (!card.classList.contains('flipped')) {
-          card.classList.add('flipped', 'revealed');
-        }
+        card.classList.add('flipped', 'revealed');
         if (card.dataset.shiny === '1') {
           card.classList.add('win');
         } else {
           card.classList.add('lose');
         }
       });
-      if (status) status.textContent = 'Révélé (debug).';
+      status.textContent = 'Révélé (debug).';
       gameOver = true;
       cards.forEach(c => c.disabled = true);
     });
   }
 
-  // Lancement initial
   resetBoard();
 }
-``
