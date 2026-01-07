@@ -169,4 +169,33 @@ h2 { font-size: 1.6rem; }
 /* Option bonus : micro-ajustement sous 360px */
 @media (max-width: 360px) {
   .tab { padding: 0.45rem 0.7rem; }
+
+  
+/* Section "Comment ça marche ?" */
+#how.panel {
+  padding: 2rem; /* plus d'air autour du contenu */
+  line-height: 1.8; /* interligne plus confortable */
+}
+
+#how h2 {
+  margin-bottom: 1rem; /* espace sous le titre */
+  text-align: center; /* centrer le titre */
+}
+
+.steps {
+  padding-left: 1.2rem; /* léger retrait pour la liste */
+  margin-bottom: 1.5rem; /* espace sous la liste */
+}
+
+.steps li {
+  margin-bottom: 0.8rem; /* espace entre chaque étape */
+}
+
+.lore {
+  margin-top: 1.5rem; /* espace avant le bloc lore */
+  padding: 1rem;
+  border-top: 1px solid #2a2e44; /* séparation discrète */
+  font-size: 0.95rem;
+}
+
 }
