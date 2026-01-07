@@ -135,16 +135,147 @@ h2 { font-size: 1.6rem; }
   gap: 0.6rem;
 }
 
-
-.site-footer small {
-  display: block;
+/* ===== Footer ===== */
+.site-footer {
+  text-align: center;
+  color: var(--muted);
+  margin: 2rem 0 3rem;
 }
-
+.site-footer small { display: block; }
 .site-footer .edition {
   font-size: 0.85em;   /* un peu plus discret */
   opacity: 0.8;
 }
 
+/* ===== Section "Comment ça marche ?" (plus aérée) ===== */
+#how.panel {
+  padding: 2rem;         /* plus d'air autour du contenu */
+  line-height: 1.8;      /* interligne plus confortable */
+}
+#how h2 {
+  margin-bottom: 1rem;   /* espace sous le titre */
+  text-align: center;    /* centrer le titre */
+}
+#how .steps {
+  padding-left: 1.2rem;  /* léger retrait pour la liste */
+  margin-bottom: 1.5rem; /* espace sous la liste */
+}
+#how .steps li {
+  margin-bottom: 0.8rem; /* espace entre chaque étape */
+}
+#how .lore {
+  margin-top: 1.5rem;    /* espace avant le bloc lore */
+  padding: 1rem;
+  border-top: 1px solid #2a2e44; /* séparation discrète */
+  font-size: 0.95rem;
+}
+
+/* ===== Mini-jeu: grille, cartes & effet shiny ===== */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(90px, 140px));
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0 1.2rem;
+}
+.card {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  perspective: 800px; /* effet 3D pour la rotation */
+}
+.card:disabled { cursor: not-allowed; opacity: 0.7; }
+
+.card-inner {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  border: 1px solid #2a2e44;
+  background: #15172a;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 420ms ease;
+}
+.card.flipped .card-inner { transform: rotateY(180deg); }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  backface-visibility: hidden;
+}
+.card-face.back {
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+.card-face.front {
+  transform: rotateY(180deg);
+  position: relative; /* pour les effets ::before/::after */
+  overflow: hidden;
+  background: #0f1122; /* fond si image plus petite */
+}
+
+/* Image de face */
+.card-face.front .card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+/* Perdu : un léger feedback visuel */
+.card.revealed.lose .card-face.front .card-img {
+  filter: grayscale(100%) opacity(0.9);
+}
+
+/* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
+.card.revealed.win .card-face.front .card-img {
+  filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
+}
+.card.revealed.win .card-face.front::before {
+  /* halo doré autour */
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
+}
+.card.revealed.win .card-face.front::after {
+  /* balayage "shimmer" */
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -120%;
+  width: 60%;
+  height: 140%;
+  transform: rotate(20deg);
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.65) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  mix-blend-mode: screen;
+  animation: shimmer-sweep 1.6s ease-in-out infinite;
+}
+@keyframes shimmer-sweep {
+  0%   { left: -120%; }
+  50%  { left: 0%; }
+  100% { left: 120%; }
+}
+
+.game-actions {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+}
+.game-status { min-height: 1.2rem; color: var(--text); }
 
 /* ===== Responsive téléphone ===== */
 /* 📱 Sur mobile : une seule colonne → titre en haut, boutons en dessous */
@@ -174,33 +305,8 @@ h2 { font-size: 1.6rem; }
 /* Option bonus : micro-ajustement sous 360px */
 @media (max-width: 360px) {
   .tab { padding: 0.45rem 0.7rem; }
-
-  
-/* Section "Comment ça marche ?" */
-#how.panel {
-  padding: 2rem; /* plus d'air autour du contenu */
-  line-height: 1.8; /* interligne plus confortable */
-}
-
-#how h2 {
-  margin-bottom: 1rem; /* espace sous le titre */
-  text-align: center; /* centrer le titre */
-}
-
-.steps {
-  padding-left: 1.2rem; /* léger retrait pour la liste */
-  margin-bottom: 1.5rem; /* espace sous la liste */
-}
-
-.steps li {
-  margin-bottom: 0.8rem; /* espace entre chaque étape */
-}
-
-.lore {
-  margin-top: 1.5rem; /* espace avant le bloc lore */
-  padding: 1rem;
-  border-top: 1px solid #2a2e44; /* séparation discrète */
-  font-size: 0.95rem;
-}
-
+  .game-grid {
+    grid-template-columns: repeat(3, minmax(80px, 110px));
+    gap: 0.8rem;
+  }
 }
