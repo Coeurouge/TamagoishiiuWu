@@ -1,4 +1,5 @@
-root {
+
+:root {
   --bg: #0e0f19;
   --panel: #161826;
   --text: #e7e9f3;
@@ -169,7 +170,7 @@ h2 { font-size: 1.6rem; }
   font-size: 0.95rem;
 }
 
-/* ===== Mini-jeu: grille, cartes &amp; effet shiny ===== */
+/* ===== Mini-jeu: grille, cartes & effet shiny ===== */
 .game-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(90px, 140px));
