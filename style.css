@@ -1,5 +1,4 @@
-
-:root {
+root {
   --bg: #0e0f19;
   --panel: #161826;
   --text: #e7e9f3;
@@ -65,7 +64,7 @@ body {
   padding: 0.5rem 0.8rem;
   border-radius: 999px;
   cursor: pointer;
-  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  transition: 120ms ease;
 }
 .tab:hover { border-color: var(--accent); }
 .tab.active {
@@ -73,15 +72,6 @@ body {
   color: var(--primary-ink);
   border-color: var(--primary);
   box-shadow: 0 0 0 6px var(--ring);
-}
-
-/* Focus visible pour accessibilité */
-.tab:focus-visible,
-.btn:focus-visible,
-.card:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(138, 180, 255, 0.7);
-  border-color: var(--accent);
 }
 
 /* ===== Main and panels ===== */
@@ -179,7 +169,7 @@ h2 { font-size: 1.6rem; }
   font-size: 0.95rem;
 }
 
-/* ===== Mini-jeu: grille, cartes & effet shiny ===== */
+/* ===== Mini-jeu: grille, cartes &amp; effet shiny ===== */
 .game-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(90px, 140px));
@@ -187,7 +177,6 @@ h2 { font-size: 1.6rem; }
   justify-content: center;
   margin: 1rem 0 1.2rem;
 }
-
 .card {
   appearance: none;
   border: none;
@@ -195,20 +184,8 @@ h2 { font-size: 1.6rem; }
   cursor: pointer;
   padding: 0;
   perspective: 800px; /* effet 3D pour la rotation */
-  /* Hover glow pour affordance */
 }
 .card:disabled { cursor: not-allowed; opacity: 0.7; }
-
-/* Glow au survol + léger zoom */
-.card:hover .card-inner {
-  box-shadow: 0 0 12px rgba(138, 180, 255, 0.4);
-  transform: scale(1.03);
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-/* Press feedback */
-.card:active .card-inner {
-  transform: scale(0.97);
-}
 
 .card-inner {
   width: 100%;
@@ -218,7 +195,7 @@ h2 { font-size: 1.6rem; }
   background: #15172a;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 420ms cubic-bezier(0.4, 0.2, 0.2, 1);
+  transition: transform 420ms ease;
 }
 .card.flipped .card-inner { transform: rotateY(180deg); }
 
@@ -254,14 +231,6 @@ h2 { font-size: 1.6rem; }
 /* Perdu : un léger feedback visuel */
 .card.revealed.lose .card-face.front .card-img {
   filter: grayscale(100%) opacity(0.9);
-}
-/* Overlay rouge doux pour “perdu” (améliore le contraste) */
-.card.revealed.lose .card-face.front::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 0, 0, 0.15);
-  border-radius: 12px;
 }
 
 /* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
@@ -307,15 +276,6 @@ h2 { font-size: 1.6rem; }
 }
 .game-status { min-height: 1.2rem; color: var(--text); }
 
-/* ===== Animation de victoire globale (optionnelle) ===== */
-body.win-effect {
-  animation: winFlash 1s ease-in-out 2;
-}
-@keyframes winFlash {
-  0%, 100% { background: radial-gradient(1200px circle at 20% 10%, #121323, var(--bg)); }
-  50% { background: radial-gradient(1200px circle at 20% 10%, #ffd54f, #121323); }
-}
-
 /* ===== Responsive téléphone ===== */
 /* 📱 Sur mobile : une seule colonne → titre en haut, boutons en dessous */
 @media (max-width: 768px) {
@@ -341,28 +301,11 @@ body.win-effect {
   .title { font-size: 0.95rem; }
 }
 
-/* Très petits écrans → 2 colonnes pour de plus grandes cartes */
-@media (max-width: 480px) {
-  .game-grid {
-    grid-template-columns: repeat(2, minmax(90px, 140px));
-  }
-}
-
 /* Option bonus : micro-ajustement sous 360px */
 @media (max-width: 360px) {
   .tab { padding: 0.45rem 0.7rem; }
   .game-grid {
-    grid-template-columns: repeat(2, minmax(80px, 110px));
+    grid-template-columns: repeat(3, minmax(80px, 110px));
     gap: 0.8rem;
-  }
-}
-
-/* 🎚️ Respect du “réduire les animations” (accessibilité) */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
   }
 }
