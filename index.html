@@ -186,9 +186,9 @@
 
     <!-- 🕹️ Mini‑jeu -->
     <section id="minigame" class="panel" tabindex="0" aria-labelledby="minigame-title">
-      <h2 id="minigame-title">Mini‑jeu : Trouve la carte qui brille</h2>
+      <h2 id="minigame-title">Mini‑jeu : Une seule carte gagnante</h2>
       <p style="color: var(--muted); margin-top: -0.5rem;">
-        Clique sur une des trois cartes. Tu gagnes seulement si tu as celle qui brille !
+        Clique sur une des trois cartes. Si tu tombes sur la carte shiny, tu gagnes ce qu'elle montre !
       </p>
 
       <!-- Grille de cartes -->
@@ -321,9 +321,9 @@
 
         if (clickedIndex !== winningIndex) {
           clickedCard.classList.add('lose');
-          statusEl.textContent = "🙈 Raté… Essaie encore avec Rejouer.";
+          statusEl.textContent = "PERDU, Coup dur pour la joueuse belge";
         } else {
-          statusEl.textContent = "✨ Bravo ! Carte shiny trouvée !";
+          statusEl.textContent = "✨ SMOOCH SMOOCH TU AS GAGNE !";
         }
       }
 
