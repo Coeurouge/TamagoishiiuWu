@@ -13,124 +13,6 @@
 
   <!-- Votre feuille de style -->
   <link rel="stylesheet" href="style.css?v=2">
-
-  <!-- Styles spécifiques au mini-jeu (ajoutés ici pour que ça marche direct) -->
-  <style>
-    /* ===== Mini-jeu: grille & cartes ===== */
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(90px, 140px));
-      gap: 1rem;
-      justify-content: center;
-      margin: 1rem 0 1.2rem;
-    }
-    .card {
-      appearance: none;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      padding: 0;
-      perspective: 800px; /* effet 3D pour la rotation */
-    }
-    .card:disabled { cursor: not-allowed; opacity: 0.7; }
-
-    .card-inner {
-      width: 100%;
-      aspect-ratio: 3 / 4;
-      border-radius: 12px;
-      border: 1px solid #2a2e44;
-      background: #15172a;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 420ms ease;
-    }
-    .card.flipped .card-inner { transform: rotateY(180deg); }
-
-    .card-face {
-      position: absolute;
-      inset: 0;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-      backface-visibility: hidden;
-    }
-    .card-face.back {
-      color: var(--muted);
-      font-size: 1.4rem;
-    }
-    .card-face.front {
-      transform: rotateY(180deg);
-      position: relative; /* pour les effets ::before/::after */
-      overflow: hidden;
-      background: #0f1122; /* fond si image plus petite */
-    }
-
-    /* Image de face */
-    .card-face.front .card-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 12px;
-      display: block;
-    }
-
-    /* Perdu : un léger feedback visuel */
-    .card.revealed.lose .card-face.front .card-img {
-      filter: grayscale(100%) opacity(0.9);
-    }
-
-    /* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
-    .card.revealed.win .card-face.front .card-img {
-      filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
-    }
-    .card.revealed.win .card-face.front::before {
-      /* halo doré autour */
-      content: "";
-      position: absolute;
-      inset: -4px;
-      border-radius: 14px;
-      box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
-    }
-    .card.revealed.win .card-face.front::after {
-      /* balayage "shimmer" */
-      content: "";
-      position: absolute;
-      top: -20%;
-      left: -120%;
-      width: 60%;
-      height: 140%;
-      transform: rotate(20deg);
-      background: linear-gradient(
-        to right,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.65) 50%,
-        rgba(255,255,255,0) 100%
-      );
-      mix-blend-mode: screen;
-      animation: shimmer-sweep 1.6s ease-in-out infinite;
-    }
-    @keyframes shimmer-sweep {
-      0%   { left: -120%; }
-      50%  { left: 0%; }
-      100% { left: 120%; }
-    }
-
-    .game-actions {
-      display: grid;
-      justify-items: center;
-      gap: 0.8rem;
-    }
-    .game-status { min-height: 1.2rem; color: var(--text); }
-
-    /* Responsive: un peu plus d'air sur mobile */
-    @media (max-width: 640px) {
-      .game-grid {
-        grid-template-columns: repeat(3, minmax(80px, 110px));
-        gap: 0.8rem;
-      }
-    }
-  </style>
 </head>
 <body>
   <header class="site-header">
@@ -143,12 +25,10 @@
       <button class="tab active" data-target="home">Accueil</button>
       <button class="tab" data-target="how">Comment ça marche ?</button>
       <button class="tab" data-target="contact">Contact</button>
-      <!-- 🆕 Onglet Mini-jeu -->
-      <button class="tab" data-target="minigame">Mini‑jeu</button>
     </nav>
   </header>
-
   <main>
+    
     <!-- Accueil -->
     <section id="home" class="panel visible" tabindex="0">
       <h1> 最もユニークなたまごっち </h1>
@@ -163,70 +43,26 @@
       </div>
     </section>
 
-    <!-- Comment ça marche -->
-    <section id="how" class="panel" tabindex="0">
-      <h2>Comment ça marche ?</h2>
+<!-- Comment ça marche -->
+<section id="how" class="panel" tabindex="0">
+  <h2>Comment ça marche ?</h2>
 
-      <ol class="steps">
-        <li>Appuie sur les boutons de droite et de gauche simultanément <strong>pendant 5 secondes</strong> pour allumer/éteindre le tamagotchi.</li>
-        <li>Fais-le grandir, monte ton groupe et <strong>SLAY GIRLLLL</strong> 💅 !</li>
-        <li>Plus tu t’en occupes, plus IL DEVIENT UNE ROCKSTAR D'EXCEPTION 🔥.</li>
-        <li>Prends en soin (faim, hygiène, sommeil), SINON IL MEURT ☠️.</li>
-      </ol>
+  <ol class="steps">
+    <li>Appuie sur les boutons de droite et de gauche simultanément <strong>pendant 5 secondes</strong> pour allumer/éteindre le tamagotchi.</li>
+    <li>Fais-le grandir, monte ton groupe et <strong>SLAY GIRLLLL</strong> 💅 !</li>
+    <li>Plus tu t’en occupes, plus IL DEVIENT UNE ROCKSTAR D'EXCEPTION 🔥.</li>
+    <li>Prends en soin (faim, hygiène, sommeil), SINON IL MEURT ☠️.</li>
+  </ol>
 
-      <div class="lore" style="text-align: center;">
-        <p class="hidden-lore" style="opacity: 0.35; font-style: italic;">
-          Ce tamagotchi n’apparaît qu’une fois par génération.
-        </p>
-        <p style="opacity: 0.35; font-style: italic;">
-          Tu as été choisie. Bonne chance. 🐟✨
-        </p>
-      </div>
-    </section>
-
-    <!-- 🕹️ Mini‑jeu -->
-    <section id="minigame" class="panel" tabindex="0" aria-labelledby="minigame-title">
-      <h2 id="minigame-title">Mini‑jeu : Trouve la carte qui brille</h2>
-      <p style="color: var(--muted); margin-top: -0.5rem;">
-        Clique sur une des trois cartes. Si tu trouves la shiny, elle brille ✨ !
-      </p>
-
-      <!-- Grille de cartes -->
-      <div class="game-grid" role="group" aria-label="Cartes du mini-jeu">
-        <button class="card" data-index="0" aria-label="Carte 1">
-          <div class="card-inner">
-            <div class="card-face back" aria-hidden="true">?</div>
-            <div class="card-face front">
-              <img class="card-img" src="" alt="Carte" />
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="1" aria-label="Carte 2">
-          <div class="card-inner">
-            <div class="card-face back" aria-hidden="true">?</div>
-            <div class="card-face front">
-              <img class="card-img" src="" alt="Carte" />
-            </div>
-          </div>
-        </button>
-
-        <button class="card" data-index="2" aria-label="Carte 3">
-          <div class="card-inner">
-            <div class="card-face back" aria-hidden="true">?</div>
-            <div class="card-face front">
-              <img class="card-img" src="" alt="Carte" />
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Zone d’état + actions -->
-      <div class="game-actions">
-        <p class="game-status" aria-live="polite"></p>
-        <button class="btn primary" id="replay-btn" type="button">Rejouer</button>
-      </div>
-    </section>
+   <div class="lore" style="text-align: center;">
+    <p class="hidden-lore" style="opacity: 0.35; font-style: italic;">
+      Ce tamagotchi n’apparaît qu’une fois par génération.
+    </p>
+    <p style="opacity: 0.35; font-style: italic;">
+      Tu as été choisie. Bonne chance. 🐟✨
+    </p>
+  </div>
+</section>
 
     <!-- Contact -->
     <section id="contact" class="panel" tabindex="0">
@@ -249,106 +85,14 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <small>© Tamagotchi Echomori Style 🐟.</small>
-    <small class="edition">Edition unique et limitée</small>
-  </footer>
+<footer class="site-footer">
+  <small>
+    © Tamagotchi Echomori Style 🐟.<br>
+    Edition unique et limitée
+  </small>
+</footer>
 
-  <!-- Script du mini-jeu (utilise assets/images/{1..10,shiny}.png) -->
-  <script>
-    (function () {
-      const IMG_PATH = 'assets/images';  // 📂 change si besoin (ex: 'assets/cards')
-      const IMG_EXT  = 'png';            // 🖼️ change si besoin (png/jpg/webp)
 
-      const panel      = document.getElementById('minigame');
-      const grid       = panel?.querySelector('.game-grid');
-      const statusEl   = panel?.querySelector('.game-status');
-      const replayBtn  = document.getElementById('replay-btn');
-      if (!panel || !grid || !statusEl || !replayBtn) return;
-
-      let winningIndex = 0;
-      let locked = false;
-
-      function pickTwoDistinctNormalImages() {
-        const pool = Array.from({ length: 10 }, (_, i) => `${IMG_PATH}/${i + 1}.${IMG_EXT}`);
-        // Mélange (Fisher–Yates)
-        for (let i = pool.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        return pool.slice(0, 2);
-      }
-
-      function initGame() {
-        winningIndex = Math.floor(Math.random() * 3);
-        locked = false;
-        statusEl.textContent = "Choisis une carte…";
-
-        const normals = pickTwoDistinctNormalImages();
-        const cards = grid.querySelectorAll('.card');
-
-        cards.forEach((card, idx) => {
-          const img = card.querySelector('.card-img');
-          const src = (idx === winningIndex)
-            ? `${IMG_PATH}/shiny.${IMG_EXT}`
-            : normals.pop();
-
-          img.src = src;
-          img.alt = (idx === winningIndex) ? "Carte shiny" : "Carte";
-
-          card.classList.remove('flipped', 'revealed', 'win', 'lose');
-          card.disabled = false;
-          card.dataset.index = String(idx);
-        });
-      }
-
-      function reveal(clickedCard) {
-        if (locked) return;
-        locked = true;
-
-        const clickedIndex = Number(clickedCard.dataset.index);
-        const cards = Array.from(grid.querySelectorAll('.card'));
-
-        // Retourne toutes les cartes (révèle la face)
-        cards.forEach(c => {
-          c.classList.add('flipped', 'revealed');
-          c.disabled = true;
-        });
-
-        // Active l’effet brillant sur la shiny
-        const shinyCard = cards[winningIndex];
-        shinyCard.classList.add('win');
-
-        if (clickedIndex !== winningIndex) {
-          clickedCard.classList.add('lose');
-          statusEl.textContent = "🙈 Raté… Essaie encore avec Rejouer.";
-        } else {
-          statusEl.textContent = "✨ Bravo ! Carte shiny trouvée !";
-        }
-      }
-
-      // Clic sur les cartes
-      grid.addEventListener('click', (e) => {
-        const card = e.target.closest('.card');
-        if (!card) return;
-        reveal(card);
-      });
-
-      // Rejouer
-      replayBtn.addEventListener('click', initGame);
-
-      // Démarrage : initialise quand on ouvre l’onglet Mini‑jeu
-      const observer = new MutationObserver(() => {
-        if (panel.classList.contains('visible')) initGame();
-      });
-      observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
-
-      // Cas où le panel est déjà visible au chargement
-      if (panel.classList.contains('visible')) initGame();
-    })();
-  </script>
-
-  <!-- Ton script existant -->
   <script src="script.js"></script>
 </body>
 </html>
