@@ -23,14 +23,14 @@ body {
 .site-header {
   position: sticky; top: 0; z-index: 100;
   background: rgba(14, 15, 25, 0.8);
-  -webkit-backdrop-filter: blur(8px); /* pour Safari iOS */
+  -webkit-backdrop-filter: blur(8px); /* iOS Safari */
   backdrop-filter: blur(8px);
   border-bottom: 1px solid #23263a;
   padding: 0.75rem 1rem;
 
-  /* Grille desktop : titre + boutons côte à côte */
+  /* Desktop : titre à gauche, boutons à droite */
   display: grid;
-  grid-template-columns: auto 1fr;     /* évite que le titre soit écrasé par Safari */
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 1rem;
 }
@@ -40,18 +40,15 @@ body {
   align-items: center;
   gap: 0.6rem;
   font-weight: 700;
-
-  /* Safari Grid: empêcher le shrink excessif */
-  min-width: 0;
+  min-width: 0;           /* évite des compressions étranges */
 }
 .logo { font-size: 1.4rem; }
 
-/* Empêcher la césure caractère par caractère (japonais) */
+/* Évite la casse caractère par caractère (japonais) */
 .title {
   letter-spacing: 0.2px;
-  white-space: nowrap;       /* pas de retour à la ligne */
-  word-break: keep-all;      /* évite la casse au milieu des mots idéographiques */
-  overflow: visible;
+  white-space: nowrap;    /* pas de retour à la ligne */
+  word-break: keep-all;   /* évite la césure idéographique */
 }
 
 /* ===== Tabs ===== */
@@ -59,9 +56,6 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-
-  /* Safari Grid: autoriser les boutons à occuper l’espace restant */
-  justify-content: flex-end;
 }
 .tab {
   appearance: none;
@@ -147,27 +141,32 @@ h2 { font-size: 1.6rem; }
   margin: 2rem 0 3rem;
 }
 
-/* ===== Responsive ===== */
-/* ✅ Mobile : on passe à 1 colonne → boutons sous le titre */
-@media (max-width: 640px) {
+/* ===== Responsive téléphone ===== */
+/* 📱 Sur mobile : une seule colonne → titre en haut, boutons en dessous */
+@media (max-width: 768px) {
   .site-header {
     display: grid;
-    grid-template-columns: 1fr;     /* une seule colonne */
+    grid-template-columns: 1fr;   /* une seule colonne */
     grid-auto-rows: auto;
     row-gap: 10px;
-    justify-items: center;          /* centre les contenus */
+    justify-items: center;        /* centre les contenus */
   }
 
   .brand {
-    grid-column: 1;                 /* première ligne */
-    justify-self: center;           /* centre le logo + titre */
+    grid-column: 1;               /* première ligne : logo + titre */
+    justify-self: center;         /* centre le bloc (mets start si tu préfères à gauche) */
   }
 
   .tabs {
-    grid-column: 1;                 /* ligne suivante → SOUS le titre */
-    justify-content: center;        /* centre les boutons */
+    grid-column: 1;               /* ligne suivante → SOUS le titre */
+    justify-content: center;      /* centre les boutons */
   }
 
-  /* Optionnel : réduire légèrement la taille pour éviter le débord */
+  /* Optionnel : réduction légère si écran très étroit */
   .title { font-size: 0.95rem; }
+}
+
+/* Option bonus : micro-ajustement sous 360px */
+@media (max-width: 360px) {
+  .tab { padding: 0.45rem 0.7rem; }
 }
