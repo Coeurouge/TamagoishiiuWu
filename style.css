@@ -1,3 +1,4 @@
+
 :root {
   --bg: #0e0f19;
   --panel: #161826;
@@ -85,7 +86,16 @@ h2 { font-size: 1.6rem; }
   text-align: center; color: var(--muted); margin: 2rem 0 3rem;
 }
 
-/* Responsive */
+/* ✅ Responsive fix: boutons sous le titre sur mobile */
 @media (max-width: 640px) {
-  .tabs { justify-content: flex-start; }
+  .site-header {
+    display: flex;
+    flex-direction: column; /* Empile titre et boutons */
+    align-items: center; /* Centre le tout */
+  }
+
+  .tabs {
+    margin-top: 10px; /* Espace entre titre et boutons */
+    justify-content: center; /* Centre les boutons */
+  }
 }
