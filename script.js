@@ -45,9 +45,11 @@ let shinyIndex = -1;
 let gameReady = false;
 
 function initGame() {
-  // Cache les cartes pendant le reset pour éviter tout indice
   const grid = document.querySelector('#game .game-grid');
-  grid.style.visibility = 'hidden';
+
+  // Cache complètement la grille pendant le reset
+  grid.style.opacity = '0';
+  grid.style.pointerEvents = 'none';
 
   // Nettoie les classes
   cards.forEach(card => {
@@ -64,9 +66,10 @@ function initGame() {
 
   // Réaffiche après un court délai (le temps que le DOM soit prêt)
   setTimeout(() => {
-    grid.style.visibility = 'visible';
+    grid.style.opacity = '1';
+    grid.style.pointerEvents = 'auto';
     gameReady = true;
-  }, 50);
+  }, 150); // délai suffisant pour éviter tout flash
 }
 
 cards.forEach(card => {
