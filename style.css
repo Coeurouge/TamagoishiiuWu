@@ -9,9 +9,10 @@
   --accent: #8ab4ff;
   --ring: rgba(255, 213, 79, 0.35);
 
-  /* === Tailles de carte (par défaut ; seront remplacées par JS) === */
+  /* === Tailles de carte (par défaut ; remplacées par JS) === */
   --card-w: 140px;  /* largeur carte */
   --card-h: 186px;  /* hauteur carte (ex. 3:4 -> 140x186). Le JS mettra la plus petite image. */
+  --card-target-ratio: 0.9; /* ✅ moins haut (1 = carré, 0.9 = légèrement plus court) */
 }
 
 * { box-sizing: border-box; }
@@ -27,12 +28,10 @@ body {
 .site-header {
   position: sticky; top: 0; z-index: 100;
   background: rgba(14, 15, 25, 0.8);
-  -webkit-backdrop-filter: blur(8px); /* iOS Safari */
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid #23263a;
   padding: 0.75rem 1rem;
-
-  /* Desktop : titre à gauche, boutons à droite */
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -44,15 +43,14 @@ body {
   align-items: center;
   gap: 0.6rem;
   font-weight: 700;
-  min-width: 0;           /* évite des compressions étranges */
+  min-width: 0;
 }
 .logo { font-size: 1.4rem; }
 
-/* Évite la casse caractère par caractère (japonais) */
 .title {
   letter-spacing: 0.2px;
-  white-space: nowrap;    /* pas de retour à la ligne */
-  word-break: keep-all;   /* évite la césure idéographique */
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 /* ===== Tabs ===== */
@@ -147,37 +145,14 @@ h2 { font-size: 1.6rem; }
 }
 .site-footer small { display: block; }
 .site-footer .edition {
-  font-size: 0.85em;   /* un peu plus discret */
+  font-size: 0.85em;
   opacity: 0.8;
-}
-
-/* ===== Section "Comment ça marche ?" (plus aérée) ===== */
-#how.panel {
-  padding: 2rem;         /* plus d'air autour du contenu */
-  line-height: 1.8;      /* interligne plus confortable */
-}
-#how h2 {
-  margin-bottom: 1rem;   /* espace sous le titre */
-  text-align: center;    /* centrer le titre */
-}
-#how .steps {
-  padding-left: 1.2rem;  /* léger retrait pour la liste */
-  margin-bottom: 1.5rem; /* espace sous la liste */
-}
-#how .steps li {
-  margin-bottom: 0.8rem; /* espace entre chaque étape */
-}
-#how .lore {
-  margin-top: 1.5rem;    /* espace avant le bloc lore */
-  padding: 1rem;
-  border-top: 1px solid #2a2e44; /* séparation discrète */
-  font-size: 0.95rem;
 }
 
 /* ===== Mini-jeu: grille, cartes & effet shiny ===== */
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(3, var(--card-w)); /* ✅ largeur de colonne = largeur carte */
+  grid-template-columns: repeat(3, var(--card-w));
   gap: 1rem;
   justify-content: center;
   margin: 1rem 0 1.2rem;
@@ -188,13 +163,14 @@ h2 { font-size: 1.6rem; }
   background: transparent;
   cursor: pointer;
   padding: 0;
-  perspective: 800px; /* effet 3D pour la rotation */
+  perspective: 800px;
 }
 .card:disabled { cursor: not-allowed; opacity: 0.7; }
 
 .card-inner {
-  width: var(--card-w);   /* ✅ fixe la largeur */
-  height: var(--card-h);  /* ✅ fixe la hauteur (définie par le JS en plus petite image) */
+  width: var(--card-w);
+  /* ✅ Hauteur réduite avec ratio */
+  height: min(var(--card-h), calc(var(--card-w) * var(--card-target-ratio)));
   border-radius: 12px;
   border: 1px solid #2a2e44;
   background: #15172a;
@@ -219,31 +195,27 @@ h2 { font-size: 1.6rem; }
 }
 .card-face.front {
   transform: rotateY(180deg);
-  position: relative; /* pour les effets ::before/::after */
+  position: relative;
   overflow: hidden;
-  background: #0f1122; /* fond si image plus petite */
+  background: #0f1122;
 }
 
-/* Image de face : pas d’upscale et tout visible */
 .card-face.front .card-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;     /* ✅ on ne recadre pas et on n’agrandit pas */
+  object-fit: contain;
   border-radius: 12px;
   display: block;
 }
 
-/* Perdu : un léger feedback visuel */
+/* Effets gagnant/perdant inchangés */
 .card.revealed.lose .card-face.front .card-img {
   filter: grayscale(100%) opacity(0.9);
 }
-
-/* ✅ Gagné (shiny) : effet BRILLANT (halo + balayage) */
 .card.revealed.win .card-face.front .card-img {
   filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
 }
 .card.revealed.win .card-face.front::before {
-  /* halo doré autour */
   content: "";
   position: absolute;
   inset: -4px;
@@ -251,7 +223,246 @@ h2 { font-size: 1.6rem; }
   box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
 }
 .card.revealed.win .card-face.front::after {
-  /* balayage "shimmer" */
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -120%;
+  width: 60%;
+  height: 140%;
+  transform: rotate(20deg);
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,Voici ton code complet avec **juste la modification pour que le cadre soit moins haut** (ajout d’une variable `--card-target-ratio` et ajustement de `.card-inner`). Tu peux **copier-coller tel quel** :
+
+---
+
+### ✅ Code CSS complet :
+
+```css
+:root {
+  --bg: #0e0f19;
+  --panel: #161826;
+  --text: #e7e9f3;
+  --muted: #a8adbd;
+  --primary: #ffd54f;   /* doré étoile */
+  --primary-ink: #3b2f0b;
+  --accent: #8ab4ff;
+  --ring: rgba(255, 213, 79, 0.35);
+
+  /* === Tailles de carte (par défaut ; remplacées par JS) === */
+  --card-w: 140px;       /* largeur carte */
+  --card-h: 186px;       /* hauteur carte (plus petite image) */
+  --card-target-ratio: 0.9; /* ✅ moins haut (1 = carré, 0.8 = encore plus court) */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px circle at 20% 10%, #121323, var(--bg));
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ===== Header ===== */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(14, 15, 25, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #23263a;
+  padding: 0.75rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  min-width: 0;
+}
+.logo { font-size: 1.4rem; }
+
+.title {
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.tab {
+  appearance: none;
+  border: 1px solid #2a2e44;
+  color: var(--text);
+  background: #15172a;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 120ms ease;
+}
+.tab:hover { border-color: var(--accent); }
+.tab.active {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 6px var(--ring);
+}
+
+/* ===== Main and panels ===== */
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.panel {
+  display: none;
+  background: var(--panel);
+  border: 1px solid #23263a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.panel.visible { display: block; }
+
+h1, h2 { margin-top: 0; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.6rem; }
+
+.hero { margin: 1rem 0; text-align: center; }
+.hero img {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 16px;
+  border: 1px solid #2a2e44;
+}
+.hero figcaption {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.cta-row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid #2a2e44;
+  background: #15172a;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  transition: 120ms ease;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: var(--primary);
+}
+
+.steps { padding-left: 1rem; }
+.tips { margin-top: 1rem; color: var(--muted); }
+
+.downloads {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  text-align: center;
+  color: var(--muted);
+  margin: 2rem 0 3rem;
+}
+.site-footer small { display: block; }
+.site-footer .edition {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* ===== Mini-jeu: grille, cartes & effet shiny ===== */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(3, var(--card-w));
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0 1.2rem;
+}
+.card {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  perspective: 800px;
+}
+.card:disabled { cursor: not-allowed; opacity: 0.7; }
+
+.card-inner {
+  width: var(--card-w);
+  /* ✅ Hauteur réduite avec ratio */
+  height: min(var(--card-h), calc(var(--card-w) * var(--card-target-ratio)));
+  border-radius: 12px;
+  border: 1px solid #2a2e44;
+  background: #15172a;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 420ms ease;
+}
+.card.flipped .card-inner { transform: rotateY(180deg); }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  backface-visibility: hidden;
+}
+.card-face.back {
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+.card-face.front {
+  transform: rotateY(180deg);
+  position: relative;
+  overflow: hidden;
+  background: #0f1122;
+}
+
+.card-face.front .card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+}
+
+/* Effets gagnant/perdant */
+.card.revealed.lose .card-face.front .card-img {
+  filter: grayscale(100%) opacity(0.9);
+}
+.card.revealed.win .card-face.front .card-img {
+  filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.65));
+}
+.card.revealed.win .card-face.front::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 6px var(--ring), 0 0 22px rgba(255, 213, 79, 0.75);
+}
+.card.revealed.win .card-face.front::after {
   content: "";
   position: absolute;
   top: -20%;
@@ -281,35 +492,21 @@ h2 { font-size: 1.6rem; }
 }
 .game-status { min-height: 1.2rem; color: var(--text); }
 
-/* ===== Responsive téléphone ===== */
-/* 📱 Sur mobile : une seule colonne → titre en haut, boutons en dessous */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .site-header {
     display: grid;
-    grid-template-columns: 1fr;   /* une seule colonne */
+    grid-template-columns: 1fr;
     grid-auto-rows: auto;
     row-gap: 10px;
-    justify-items: center;        /* centre les contenus */
+    justify-items: center;
   }
-
-  .brand {
-    grid-column: 1;               /* première ligne : logo + titre */
-    justify-self: center;         /* centre le bloc (mets start si tu préfères à gauche) */
-  }
-
-  .tabs {
-    grid-column: 1;               /* ligne suivante → SOUS le titre */
-    justify-content: center;      /* centre les boutons */
-  }
-
-  /* Optionnel : réduction légère si écran très étroit */
+  .brand { justify-self: center; }
+  .tabs { justify-content: center; }
   .title { font-size: 0.95rem; }
 }
 
-/* Option bonus : micro-ajustement sous 360px */
 @media (max-width: 360px) {
   .tab { padding: 0.45rem 0.7rem; }
-  :root { --card-w: 110px; } /* ✅ rend les cartes un peu plus petites en très petit écran */
-  /* La hauteur suit ce que le JS a défini pour la plus petite image ;
-     si tu veux garder un ratio fixe, tu peux aussi poser --card-h ici. */
+  :root { --card-w: 110px; }
 }
