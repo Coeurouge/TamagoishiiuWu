@@ -36,11 +36,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // =======================
-// Mini-jeu : shiny choisie APRÈS le clic
+// Mini-jeu : images attribuées APRÈS le clic
 // =======================
-const grid = document.querySelector('#game .game-grid');
 const cards = document.querySelectorAll('#game .card');
 const replayBtn = document.querySelector('#game .game-actions .btn');
+
+// Liste des images possibles
+const images = ['img1.jpg', 'img2.jpg', 'img3.jpg'];
 
 let shinyIndex = -1;
 let gameReady = false;
@@ -49,6 +51,10 @@ function initGame() {
   cards.forEach(card => {
     card.classList.remove('flipped', 'revealed', 'win', 'lose');
     card.disabled = false;
+
+    // Affiche uniquement le dos (pas d'image)
+    const imgEl = card.querySelector('.card-img');
+    imgEl.src = ''; // ou une image "dos de carte"
   });
 
   shinyIndex = -1; // aucune shiny avant le clic
@@ -62,9 +68,16 @@ cards.forEach(card => {
     const currentCards = Array.from(document.querySelectorAll('#game .card'));
     const clickedIndex = currentCards.indexOf(card);
 
-    // Choisir la shiny maintenant
+    // Choisir shiny et attribuer les images maintenant
     if (shinyIndex < 0) {
       shinyIndex = Math.floor(Math.random() * currentCards.length);
+
+      // Mélange les images et attribue
+      const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+      currentCards.forEach((c, i) => {
+        const imgEl = c.querySelector('.card-img');
+        imgEl.src = shuffledImages[i];
+      });
     }
 
     // Retourne la carte cliquée
@@ -78,7 +91,7 @@ cards.forEach(card => {
       const shinyCard = currentCards[shinyIndex];
       setTimeout(() => {
         shinyCard.classList.add('flipped', 'revealed', 'win');
-      }, 600); // délai pour laisser l'animation de la carte cliquée
+      }, 600);
     }
 
     currentCards.forEach(c => (c.disabled = true));
