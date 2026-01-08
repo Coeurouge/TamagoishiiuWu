@@ -5,30 +5,22 @@
 const tabs = document.querySelectorAll('.tab');
 const panels = document.querySelectorAll('.panel');
 
-// Navigation par clic sur les onglets
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    // état visuel actif
     tabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
 
-    // sections
     const id = tab.dataset.target;
     panels.forEach(p => p.classList.toggle('visible', p.id === id));
 
-    // mise à jour du hash (pour partager un lien vers un onglet)
     history.replaceState(null, '', `#${id}`);
-
-    // accessibilité : focus sur la section
     const panel = document.getElementById(id);
     panel && panel.focus();
 
-    // Si on ouvre le mini-jeu, on réinitialise
     if (id === 'game') initGame();
   });
 });
 
-// Liens/boutons avec data-target (CTA internes)
 document.addEventListener('click', (e) => {
   const link = e.target.closest('[data-target]');
   if (!link) return;
@@ -37,7 +29,6 @@ document.addEventListener('click', (e) => {
   if (btn) btn.click();
 });
 
-// Ouvrir la section depuis l’URL (ex: …/index.html#contact)
 window.addEventListener('DOMContentLoaded', () => {
   const hash = location.hash.replace('#', '');
   const initial = Array.from(tabs).find(t => t.dataset.target === hash) || tabs[0];
@@ -53,8 +44,11 @@ const replayBtn = document.querySelector('#game .game-actions .btn');
 let shinyIndex = -1;
 let gameReady = false;
 
-// Initialisation du jeu
 function initGame() {
+  // Cache les cartes pendant le reset pour éviter tout indice
+  const grid = document.querySelector('#game .game-grid');
+  grid.style.visibility = 'hidden';
+
   // Nettoie les classes
   cards.forEach(card => {
     card.classList.remove('flipped', 'revealed', 'win', 'lose');
@@ -64,15 +58,17 @@ function initGame() {
   // Choix interne de la shiny
   shinyIndex = Math.floor(Math.random() * cards.length);
 
-  // Shuffle DOM pour éviter prédiction
-  const grid = document.querySelector('#game .game-grid');
+  // Shuffle DOM
   const shuffled = Array.from(cards).sort(() => Math.random() - 0.5);
   shuffled.forEach(c => grid.appendChild(c));
 
-  gameReady = true;
+  // Réaffiche après un court délai (le temps que le DOM soit prêt)
+  setTimeout(() => {
+    grid.style.visibility = 'visible';
+    gameReady = true;
+  }, 50);
 }
 
-// Clic sur une carte
 cards.forEach(card => {
   card.addEventListener('click', () => {
     if (!gameReady || card.disabled) return;
@@ -90,10 +86,8 @@ cards.forEach(card => {
   });
 });
 
-// Bouton "Rejouer"
 if (replayBtn) {
   replayBtn.addEventListener('click', () => {
     initGame();
   });
 }
-``
