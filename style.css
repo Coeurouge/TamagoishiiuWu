@@ -8,6 +8,10 @@
   --primary-ink: #3b2f0b;
   --accent: #8ab4ff;
   --ring: rgba(255, 213, 79, 0.35);
+
+  /* === Tailles de carte (par défaut ; seront remplacées par JS) === */
+  --card-w: 140px;  /* largeur carte */
+  --card-h: 186px;  /* hauteur carte (ex. 3:4 -> 140x186). Le JS mettra la plus petite image. */
 }
 
 * { box-sizing: border-box; }
@@ -173,7 +177,7 @@ h2 { font-size: 1.6rem; }
 /* ===== Mini-jeu: grille, cartes & effet shiny ===== */
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(90px, 140px));
+  grid-template-columns: repeat(3, var(--card-w)); /* ✅ largeur de colonne = largeur carte */
   gap: 1rem;
   justify-content: center;
   margin: 1rem 0 1.2rem;
@@ -189,8 +193,8 @@ h2 { font-size: 1.6rem; }
 .card:disabled { cursor: not-allowed; opacity: 0.7; }
 
 .card-inner {
-  width: 100%;
-  aspect-ratio: 3 / 4;
+  width: var(--card-w);   /* ✅ fixe la largeur */
+  height: var(--card-h);  /* ✅ fixe la hauteur (définie par le JS en plus petite image) */
   border-radius: 12px;
   border: 1px solid #2a2e44;
   background: #15172a;
@@ -220,11 +224,11 @@ h2 { font-size: 1.6rem; }
   background: #0f1122; /* fond si image plus petite */
 }
 
-/* Image de face */
+/* Image de face : pas d’upscale et tout visible */
 .card-face.front .card-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;     /* ✅ on ne recadre pas et on n’agrandit pas */
   border-radius: 12px;
   display: block;
 }
@@ -305,8 +309,7 @@ h2 { font-size: 1.6rem; }
 /* Option bonus : micro-ajustement sous 360px */
 @media (max-width: 360px) {
   .tab { padding: 0.45rem 0.7rem; }
-  .game-grid {
-    grid-template-columns: repeat(3, minmax(80px, 110px));
-    gap: 0.8rem;
-  }
+  :root { --card-w: 110px; } /* ✅ rend les cartes un peu plus petites en très petit écran */
+  /* La hauteur suit ce que le JS a défini pour la plus petite image ;
+     si tu veux garder un ratio fixe, tu peux aussi poser --card-h ici. */
 }
