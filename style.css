@@ -315,4 +315,12 @@ h2 { font-size: 1.6rem; }
 .game-grid.lock { pointer-events: none; }
 .game-grid.lock .card-face.front { visibility: hidden; }
 
+  
+/* Cache les faces avant pendant le reset */
+.game-grid.lock .card-face.front {
+  visibility: hidden;
+}
+``
+
+
 }
