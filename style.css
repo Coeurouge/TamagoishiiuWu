@@ -8,6 +8,9 @@
   --primary-ink: #3b2f0b;
   --accent: #8ab4ff;
   --ring: rgba(255, 213, 79, 0.35);
+  --card-w: 140px;  /* largeur carte */
+  --card-h: 50px;   /* hauteur carte */
+
 }
 
 * { box-sizing: border-box; }
