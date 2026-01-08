@@ -36,7 +36,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // =======================
-// Mini-jeu : Rejouer -> flip-back avec images actuelles, puis changer images
+// Mini-jeu : flip-back avec images actuelles, puis changer images
 // =======================
 const grid      = document.querySelector('#game .game-grid');
 const cards     = document.querySelectorAll('#game .card');
@@ -90,7 +90,7 @@ replayBtn.addEventListener('click', async () => {
   const shuffledCards = shuffleArray(Array.from(cards));
   shuffledCards.forEach(c => grid.appendChild(c));
 
-  // 4) Changer les images pour la prochaine manche
+  // 4) Changer les images pour la prochaine manche (après flip-back terminé)
   const shuffledImages = shuffleArray([...images]);
   shuffledCards.forEach((card, i) => {
     const imgEl = card.querySelector('.card-img');
