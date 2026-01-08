@@ -46,29 +46,28 @@
     }
     .card.flipped .card-inner { transform: rotateY(180deg); }
 
-      .card-face {
-        position: absolute;
-        inset: 0;
-        border-radius: 12px;
-        backface-visibility: hidden;
-      }
-      
-      .card-face.back {
-        display: grid;
-        place-items: center;
-        color: var(--muted);
-        font-size: 1.4rem;
-        font-weight: 700;
-      }
-
+          .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      backface-visibility: hidden;
+    }
+    
+    .card-face.back {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    
     .card-face.front {
       transform: rotateY(180deg);
-      position: relative; /* pour les effets ::before/::after */
+      position: relative;
       overflow: hidden;
-      background: #0f1122; /* fond si image plus petite */
+      background: #0f1122;
     }
-
-    /* Image de face */
+    
     .card-face.front .card-img {
       position: absolute;
       inset: 0;
