@@ -37,9 +37,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 // =======================
-// Mini-jeu : attendre 100% la fin du flip-back avant réorg
+// Mini-jeu : attendre FIN du flip-back, puis réorganiser
 // =======================
-const gamePanel = document.getElementById('game');
 const grid      = document.querySelector('#game .game-grid');
 const cards     = document.querySelectorAll('#game .card');
 const replayBtn = document.querySelector('#game .game-actions .btn');
@@ -60,45 +59,38 @@ function setCardFrontImage(card, src) {
 }
 
 function getFlipDurationMs() {
-  // Lit la durée de transition CSS définie sur .card-inner (ex: "0.42s")
+  // Lit la durée exacte de transition CSS sur .card-inner
   const inner = document.querySelector('#game .card .card-inner');
-  if (!inner) return 420;
+  if (!inner) return 420; // fallback
   const d = getComputedStyle(inner).transitionDuration.split(',')[0].trim(); // "0.42s" ou "420ms"
-  let ms = 420;
-  if (d.endsWith('ms')) ms = parseFloat(d);
-  else if (d.endsWith('s')) ms = parseFloat(d) * 1000;
-  return isNaN(ms) ? 420 : ms;
+  if (d.endsWith('ms')) return parseFloat(d) || 420;
+  if (d.endsWith('s'))  return (parseFloat(d) || 0.42) * 1000;
+  return 420;
 }
 
 function waitFlipBackFor(inner, shouldWait, timeoutMs) {
-  // Attend transitionend(transform) sur inner si shouldWait = true
+  // Attend transitionend(transform) sur inner si la carte était flipped
   return new Promise(resolve => {
     if (!shouldWait) {
-      // Deux rAF pour garantir un re-peint complet même sans transition
-      return requestAnimationFrame(() =>
-        requestAnimationFrame(resolve)
-      );
+      // Double rAF pour garantir un re-peint même sans transition
+      return requestAnimationFrame(() => requestAnimationFrame(resolve));
     }
-
     let done = false;
     const cleanup = () => {
       if (done) return;
       done = true;
       inner.removeEventListener('transitionend', onEnd);
       clearTimeout(fallback);
-      // Double rAF : évite tout flash pendant le re-layout/paint
+      // Double rAF pour être sûr que le navigateur ait fini de peindre
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     };
-
     const onEnd = (e) => {
       if (e.target !== inner) return;
       if (e.propertyName !== 'transform') return;
       cleanup();
     };
-
     inner.addEventListener('transitionend', onEnd, { once: true });
-
-    // Fallback si transitionend ne se déclenche pas (navigateurs / état déjà dos)
+    // Fallback si transitionend ne se déclenche pas
     const fallback = setTimeout(cleanup, timeoutMs + 200);
   });
 }
@@ -106,16 +98,15 @@ function waitFlipBackFor(inner, shouldWait, timeoutMs) {
 async function waitAllFlipBack(beforeStates) {
   const inners = Array.from(document.querySelectorAll('#game .card .card-inner'));
   const flipMs = getFlipDurationMs();
-  const waits = inners.map((inner, i) =>
-    waitFlipBackFor(inner, !!beforeStates[i], flipMs)
-  );
+  const waits = inners.map((inner, i) => waitFlipBackFor(inner, !!beforeStates[i], flipMs));
   await Promise.all(waits);
-  // Petit tampon supplémentaire
+  // Tampon supplémentaire pour éviter tout micro-flash
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
 function resetVisualState() {
   cards.forEach(card => {
+    // revenir côté dos et nettoyer les états
     card.classList.remove('revealed', 'win', 'lose', 'flipped');
     card.disabled = false;
   });
@@ -123,11 +114,10 @@ function resetVisualState() {
 
 // -------- Init --------
 function initGame() {
-  if (!gamePanel) return;
   shinyIndex = -1;
   gameReady = true;
   resetVisualState();
-  // Optionnel : afficher un dos de carte (sinon retirer l'image front)
+  // Optionnel : dos de carte (si tu en as un)
   cards.forEach(card => {
     const imgEl = card.querySelector('.card-img');
     if (imgEl) imgEl.removeAttribute('src'); // ou imgEl.src = 'dos.png';
@@ -141,38 +131,37 @@ if (replayBtn) {
     resetInProgress = true;
 
     try {
+      // Bloquer interaction
       gameReady = false;
       replayBtn.disabled = true;
       cards.forEach(c => c.disabled = true);
 
-      // 1) Capturer l'état AVANT retrait de .flipped (pour savoir qui va animer)
+      // 1) Marquer les cartes qui vont ANIMER (celles actuellement flipped)
       const beforeStates = Array.from(cards).map(c => c.classList.contains('flipped'));
 
-      // 2) Lancer flip-back : enlever .flipped
+      // 2) Masquer les faces avant pendant le flip-back (évite de voir les images)
+      grid.classList.add('lock');
+
+      // 3) Lancer flip-back (retirer .flipped sur toutes)
       resetVisualState();
 
-      // 3) Attendre VRAIMENT la fin des transitions sur TOUTES les cartes
+      // 4) Attendre VRAIMENT la fin du flip-back sur toutes les cartes
       await waitAllFlipBack(beforeStates);
 
-      // 4) Masquer la grille pendant la réorganisation (aucun mouvement visible)
-      grid.style.visibility = 'hidden';
-      grid.style.pointerEvents = 'none';
-
-      // 5) Shuffle DOM APRÈS flip-back
+      // 5) Réorganiser APRÈS flip-back (mouvement invisible car grid.lock)
       const frag = document.createDocumentFragment();
       const shuffledCards = shuffleArray(Array.from(cards));
       shuffledCards.forEach(c => frag.appendChild(c));
       grid.appendChild(frag);
 
-      // 6) Attribuer des images aléatoires côté face
+      // 6) (Ré)attribuer des images aléatoires côté face
       const shuffledImages = shuffleArray([...images]);
       shuffledCards.forEach((card, i) => setCardFrontImage(card, shuffledImages[i]));
 
-      // 7) Ré-afficher la grille
-      grid.style.visibility = 'visible';
-      grid.style.pointerEvents = 'auto';
+      // 7) Réafficher les faces avant seulement une fois tout terminé
+      grid.classList.remove('lock');
 
-      // 8) Réactiver les interactions
+      // 8) Réactiver interaction
       shinyIndex = -1; // shiny choisie au clic joueur
       shuffledCards.forEach(c => c.disabled = false);
       replayBtn.disabled = false;
@@ -191,12 +180,12 @@ cards.forEach(card => {
     const currentCards = Array.from(document.querySelectorAll('#game .card'));
     const clickedIndex = currentCards.indexOf(card);
 
-    // Choisir la shiny au moment du clic (aucun indice avant)
+    // Choisir la shiny AU MOMENT du clic (zéro indice avant)
     if (shinyIndex < 0) {
       shinyIndex = Math.floor(Math.random() * currentCards.length);
     }
 
-    // Retourner la carte cliquée
+    // Retourner la carte cliquée (vers face)
     card.classList.add('flipped');
 
     // Marquer le résultat une fois le flip enclenché
@@ -204,10 +193,10 @@ cards.forEach(card => {
       card.classList.add('revealed', clickedIndex === shinyIndex ? 'win' : 'lose');
     });
 
-    // Si perdue → révéler la shiny ailleurs après un petit délai
+    // Si perdue → révéler la shiny ailleurs après un petit délai (effet sympa)
+    const half = getFlipDurationMs() / 2;
     if (clickedIndex !== shinyIndex) {
       const shinyCard = currentCards[shinyIndex];
-      const half = getFlipDurationMs() / 2;
       setTimeout(() => {
         shinyCard.classList.add('flipped', 'revealed', 'win');
       }, half);
