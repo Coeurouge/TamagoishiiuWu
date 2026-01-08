@@ -204,17 +204,15 @@ h2 { font-size: 1.6rem; }
   position: absolute;
   inset: 0;
   border-radius: 12px;
-  backface-visibility: hidden;
-}
-
-.card-face.back {
   display: grid;
   place-items: center;
+  font-weight: 700;
+  backface-visibility: hidden;
+}
+.card-face.back {
   color: var(--muted);
   font-size: 1.4rem;
-  font-weight: 700;
 }
-
 .card-face.front {
   transform: rotateY(180deg);
   position: relative; /* pour les effets ::before/::after */
@@ -224,14 +222,12 @@ h2 { font-size: 1.6rem; }
 
 /* Image de face */
 .card-face.front .card-img {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 12px;
   display: block;
 }
-
 
 /* Perdu : un léger feedback visuel */
 .card.revealed.lose .card-face.front .card-img {
