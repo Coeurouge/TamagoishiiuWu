@@ -42,8 +42,16 @@ const grid      = document.querySelector('#game .game-grid');
 const cards     = document.querySelectorAll('#game .card');
 const replayBtn = document.querySelector('#game .game-actions .btn');
 
-// 👉 Adapte ces chemins d’images :
-const images    = ['img1.jpg', 'img2.jpg', 'img3.jpg'];
+
+// Dossier où se trouvent tes images
+const IMAGE_BASE = 'assets/images/';
+
+// Images de base (1 à 10)
+const images = Array.from({ length: 10 }, (_, i) => `${IMAGE_BASE}${i + 1}.jpg`);
+
+// Image spéciale (si tu veux l'utiliser à part)
+const SHINY_IMAGE = `${IMAGE_BASE}shiny.jpg`;
+
 
 let shinyIndex = -1;
 let gameReady = false;
