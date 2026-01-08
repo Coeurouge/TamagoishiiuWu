@@ -11,8 +11,7 @@
 
   /* === Tailles de carte (par défaut ; remplacées par JS) === */
   --card-w: 140px;  /* largeur carte */
-  --card-h: 140px;  /* hauteur carte (ex. 3:4 -> 140x186). Le JS mettra la plus petite image. */
-  --card-target-ratio: 1; /* ✅ moins haut (1 = carré, 0.9 = légèrement plus court) */
+  --card-h: 120px;  /* hauteur carte (ex. 3:4 -> 140x186). Le JS mettra la plus petite image. */
 }
 
 * { box-sizing: border-box; }
