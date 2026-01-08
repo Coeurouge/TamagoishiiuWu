@@ -17,7 +17,7 @@ tabs.forEach(tab => {
     const panel = document.getElementById(id);
     panel && panel.focus();
 
-    if (id === 'game') initGame(); // ouvre le mini-jeu -> reset
+    if (id === 'game') initGame();
   });
 });
 
@@ -36,45 +36,105 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // =======================
-// Mini-jeu : mélange APRÈS flip-back
+// Mini-jeu : attendre flip-back avant shuffle
 // =======================
-const gamePanel = document.getElementById('game');
 const grid = document.querySelector('#game .game-grid');
 const cards = document.querySelectorAll('#game .card');
 const replayBtn = document.querySelector('#game .game-actions .btn');
-
-// Images possibles (adapte les chemins)
-const images = ['img1.jpg', 'img2.jpg', 'img3.jpg'];
-
-// Durée d'anim CSS (doit matcher style.css -> transition: transform 420ms)
-const FLIP_MS = 420;
-const BUFFER_MS = 40;
+const images = ['img1.jpg', 'img2.jpg', 'img3.jpg']; // adapte tes images
+const FLIP_MS = 420; // durée CSS de transition transform
+const BUFFER_MS = 100;
 
 let shinyIndex = -1;
 let gameReady = false;
 
-// Utilitaires
-const shuffleArray = arr => arr.sort(() => Math.random() - 0.5);
+function shuffleArray(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
 
-function waitTransformEnd(inner) {
-  return new Promise(resolve => {
-    const handler = (e) => {
-      if (e.propertyName === 'transform') {
-        inner.removeEventListener('transitionend', handler);
-        resolve();
-      }
-    };
-    // Si aucune transition ne se produit (déjà côté dos), on résout après un micro délai
-    const computed = getComputedStyle(inner);
-    const dur = parseFloat(computed.transitionDuration) || 0;
-    if (dur === 0) {
-      setTimeout(resolve, 0);
-    } else {
-      inner.addEventListener('transitionend', handler, { once: true });
-    }
+function setCardFrontImage(card, src) {
+  const imgEl = card.querySelector('.card-img');
+  if (imgEl) imgEl.src = src;
+}
+
+function resetVisualState() {
+  cards.forEach(card => {
+    card.classList.remove('revealed', 'win', 'lose', 'flipped');
+    card.disabled = false;
   });
 }
 
-// Met une image côté front, dos neutre (optionnel)
-function setCardFrontImage(card, src) {
-  const imgEl = card.querySelector('.card-img');
+function initGame() {
+  shinyIndex = -1;
+  gameReady = true;
+  resetVisualState();
+  cards.forEach(card => {
+    const imgEl = card.querySelector('.card-img');
+    if (imgEl) imgEl.removeAttribute('src'); // ou mettre image du dos
+  });
+}
+
+// === Rejouer : attendre flip-back avant réorg ===
+if (replayBtn) {
+  replayBtn.addEventListener('click', async () => {
+    gameReady = false;
+    replayBtn.disabled = true;
+    cards.forEach(c => c.disabled = true);
+
+    // 1) Retirer .flipped pour lancer le flip-back
+    resetVisualState();
+
+    // 2) Attendre la fin de l'animation (flip-back)
+    await new Promise(r => setTimeout(r, FLIP_MS + BUFFER_MS));
+
+    // 3) Cache la grille pendant la réorganisation
+    grid.style.visibility = 'hidden';
+
+    // 4) Mélange le DOM
+    const shuffledCards = shuffleArray(Array.from(cards));
+    shuffledCards.forEach(c => grid.appendChild(c));
+
+    // 5) Attribue les images aléatoires
+    const shuffledImages = shuffleArray([...images]);
+    shuffledCards.forEach((card, i) => setCardFrontImage(card, shuffledImages[i]));
+
+    // 6) Réaffiche la grille
+    grid.style.visibility = 'visible';
+
+    // Réactive le jeu
+    shinyIndex = -1;
+    shuffledCards.forEach(c => c.disabled = false);
+    replayBtn.disabled = false;
+    gameReady = true;
+  });
+}
+
+// === Clic carte : shiny choisie après clic ===
+cards.forEach(card => {
+  card.addEventListener('click', () => {
+    if (!gameReady || card.disabled) return;
+
+    const currentCards = Array.from(document.querySelectorAll('#game .card'));
+    const clickedIndex = currentCards.indexOf(card);
+
+    if (shinyIndex < 0) {
+      shinyIndex = Math.floor(Math.random() * currentCards.length);
+    }
+
+    card.classList.add('flipped');
+    requestAnimationFrame(() => {
+      card.classList.add('revealed', clickedIndex === shinyIndex ? 'win' : 'lose');
+    });
+
+    if (clickedIndex !== shinyIndex) {
+      const shinyCard = currentCards[shinyIndex];
+      setTimeout(() => {
+        shinyCard.classList.add('flipped', 'revealed', 'win');
+      }, FLIP_MS / 2);
+    }
+
+    currentCards.forEach(c => (c.disabled = true));
+    gameReady = false;
+  });
+});
+``
