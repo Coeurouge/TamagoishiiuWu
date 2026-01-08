@@ -8,8 +8,6 @@
   --primary-ink: #3b2f0b;
   --accent: #8ab4ff;
   --ring: rgba(255, 213, 79, 0.35);
-  --card-w: 140px;  /* largeur carte */
-  --card-h: 60px;   /* hauteur carte */
 }
 
 * { box-sizing: border-box; }
@@ -179,11 +177,7 @@ h2 { font-size: 1.6rem; }
   gap: 1rem;
   justify-content: center;
   margin: 1rem 0 1.2rem;
-
-  /* ✅ Assure une hauteur de ligne = hauteur carte */
-  grid-auto-rows: var(--card-h);
 }
-
 .card {
   appearance: none;
   border: none;
@@ -194,32 +188,22 @@ h2 { font-size: 1.6rem; }
 }
 .card:disabled { cursor: not-allowed; opacity: 0.7; }
 
-/* ✅ Taille exacte de la zone cliquable */
-.card {
-  width: var(--card-w);    /* 140px */
-  height: var(--card-h);   /* 60px */
-}
-
-/* ✅ On enlève l'aspect-ratio et on fixe la boîte interne */
 .card-inner {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 3 / 4;
   border-radius: 12px;
   border: 1px solid #2a2e44;
   background: #15172a;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 420ms ease;
-
-  /* Neutralise toute ancienne règle d'aspect-ratio */
-  aspect-ratio: auto !important;
 }
 .card.flipped .card-inner { transform: rotateY(180deg); }
 
 .card-face {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -241,7 +225,7 @@ h2 { font-size: 1.6rem; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
+  border-radius: 12px;
   display: block;
 }
 
@@ -324,8 +308,5 @@ h2 { font-size: 1.6rem; }
   .game-grid {
     grid-template-columns: repeat(3, minmax(80px, 110px));
     gap: 0.8rem;
-    /* conserve la hauteur des cartes */
-    grid-auto-rows: var(--card-h);
   }
 }
-``
