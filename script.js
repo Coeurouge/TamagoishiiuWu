@@ -1,4 +1,7 @@
+
+// =========================
 // Gestion des onglets (SPA)
+// =========================
 const tabs = document.querySelectorAll('.tab');
 const panels = document.querySelectorAll('.panel');
 
@@ -39,47 +42,130 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-if (replayBtn) {
-  replayBtn.addEventListener('click', () => {
-    // 1) Masquer la face avant pour éviter de voir shiny.jpg pendant le flip
+// =========================
+// Mini‑jeu : logique ajoutée
+// =========================
+(function () {
+  // Sélecteurs de la section mini‑jeu (aucune modif HTML requise)
+  const panel = document.getElementById('game');           // <section id="game" class="panel">…
+  const grid  = document.querySelector('.game-grid');       // conteneur des 3 cartes
+  const cards = grid ? Array.from(grid.querySelectorAll('.card')) : [];
+  const statusEl = document.querySelector('.game-status');  // zone de statut (optionnelle)
+  const replayBtn = document.querySelector('[data-action="replay"]'); // bouton Rejouer
+
+  if (!panel || !grid || cards.length === 0 || !replayBtn) {
+    // Si ta page charge les scripts partout, on sort proprement quand les éléments ne sont pas là.
+    return;
+  }
+
+  const NORMAL_IMG = 'img/normal.jpg';
+  const SHINY_IMG  = 'img/shiny.jpg';
+
+  let winningIndex = -1;
+
+  // Évite un "indice" visuel dû au cache navigateur
+  function cacheBust(url) {
+    const rnd = Math.floor(Math.random() * 1e9);
+    return `${url}?cb=${rnd}`;
+  }
+
+  // Assigne les images APRÈS le flip‑back complet
+  function assignImagesAfterFlipBack() {
+    winningIndex = Math.floor(Math.random() * cards.length);
+
+    cards.forEach((card, i) => {
+      const img = card.querySelector('.card-img');
+      if (!img) return;
+
+      const isWin = i === winningIndex;
+      img.src = cacheBust(isWin ? SHINY_IMG : NORMAL_IMG);
+      img.alt = isWin ? 'Carte shiny' : 'Carte normale';
+    });
+
+    // réinitialise l'état d'une nouvelle manche
     cards.forEach(card => {
+      card.classList.remove('revealed', 'win', 'lose');
+      card.disabled = false;
+    });
+    if (statusEl) statusEl.textContent = '';
+  }
+
+  // Attendre la fin de la rotation (transform) pour TOUTES les cartes
+  function waitForAllFlipBack() {
+    const waits = cards.map(card => {
+      const inner = card.querySelector('.card-inner');
+      if (!inner) return Promise.resolve();
+
+      return new Promise(resolve => {
+        // Si déjà côté dos (pas de transform), on résout tout de suite
+        const computed = getComputedStyle(inner);
+        if (computed.transform === 'none' || !card.classList.contains('flipped')) {
+          resolve();
+          return;
+        }
+
+        const handler = (e) => {
+          if (e.propertyName !== 'transform') return; // on ne vise que la rotation
+          inner.removeEventListener('transitionend', handler);
+          resolve();
+        };
+        inner.addEventListener('transitionend', handler, { once: true });
+      });
+    });
+
+    return Promise.all(waits);
+  }
+
+  // Révélation d'une carte (au clic utilisateur)
+  function revealCard(index) {
+    // Une seule révélation visuelle : on retourne toutes les cartes et marque win/lose
+    cards.forEach((card, i) => {
+      const isWin = i === winningIndex;
+      card.classList.add('flipped', 'revealed', isWin ? 'win' : 'lose');
+      card.disabled = true;
+    });
+    if (statusEl) statusEl.textContent = (index === winningIndex) ? 'Gagné ! ✨' : 'Raté…';
+  }
+
+  // Initialiser une manche SANS swap pendant la rotation : d'abord flip‑back, ensuite images
+  function initGame() {
+    // 1) demander le retour côté dos (sans changer les images)
+    cards.forEach(card => {
+      // masque temporaire pour éviter toute frame visible pendant le retour
       const img = card.querySelector('.card-img');
       if (img) img.style.visibility = 'hidden';
 
-      // flip back & reset état visuel
       card.classList.remove('flipped', 'revealed', 'win', 'lose');
       card.disabled = false;
     });
 
-    // 2) Attendre la fin de la transition de rotation, puis réassigner les images
-    const firstInner = cards[0]?.querySelector('.card-inner');
-    const afterFlip = () => {
-      firstInner.removeEventListener('transitionend', onEnd);
+    // 2) attendre la fin du flip‑back de toutes les cartes…
+    waitForAllFlipBack().then(() => {
+      // 3) …puis changer les images (tirage shiny) et réafficher
+      assignImagesAfterFlipBack();
 
-      // Tirage + changement des src
-      assignImages();
-
-      // 3) Réafficher les faces avant (maintenant que les src sont mis à jour)
       cards.forEach(card => {
         const img = card.querySelector('.card-img');
         if (img) img.style.visibility = 'visible';
       });
-    };
+    });
+  }
 
-    const onEnd = (e) => {
-      if (e.propertyName !== 'transform') return; // on ne répond qu'à la rotation Y
-      afterFlip();
-    };
-
-    if (firstInner) {
-      // Garantir qu'une transition se produit bien
-      requestAnimationFrame(() => {
-        firstInner.addEventListener('transitionend', onEnd);
-      });
-    } else {
-      // Fallback si ta structure diffère: on respecte la durée de l'anim CSS (420 ms)
-      setTimeout(() => afterFlip(), 420);
-    }
+  // Clic sur chaque carte → révélation
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => revealCard(i));
   });
-}
 
+  // Bouton Rejouer → réinitialisation "propre"
+  replayBtn.addEventListener('click', initGame);
+
+  // Démarrage : initialise quand on ouvre l’onglet Mini‑jeu
+  const observer = new MutationObserver(() => {
+    if (panel.classList.contains('visible')) initGame();
+  });
+  observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
+  // Cas où le panel est déjà visible au chargement
+  if (panel.classList.contains('visible')) initGame();
+})();
+``
