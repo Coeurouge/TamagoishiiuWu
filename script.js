@@ -169,3 +169,152 @@ window.addEventListener('DOMContentLoaded', () => {
   if (panel.classList.contains('visible')) initGame();
 })();
 ``
+
+// =========================
+// Mini‑jeu : swap APRÈS flip‑back effectif
+// =========================
+(function () {
+  const panel    = document.getElementById('game');           // section du mini‑jeu
+  const grid     = document.querySelector('.game-grid');      // grille des cartes
+  const cards    = grid ? Array.from(grid.querySelectorAll('.card')) : [];
+  const replayBtn = document.querySelector('[data-action="replay"]');
+  const statusEl = document.querySelector('.game-status');
+
+  if (!panel || !grid || cards.length === 0 || !replayBtn) return;
+
+  const NORMAL_IMG = 'img/normal.jpg';
+  const SHINY_IMG  = 'img/shiny.jpg';
+  const FLIP_MS = 420; // doit correspondre à .card-inner { transition: transform 420ms ... }
+
+  let winningIndex = -1;
+
+  function cacheBust(url) {
+    return `${url}?cb=${Math.floor(Math.random() * 1e9)}`;
+  }
+
+  function assignImages() {
+    winningIndex = Math.floor(Math.random() * cards.length);
+    cards.forEach((card, i) => {
+      const img = card.querySelector('.card-img');
+      if (!img) return;
+      const isWin = i === winningIndex;
+      img.src = cacheBust(isWin ? SHINY_IMG : NORMAL_IMG);
+      img.alt = isWin ? 'Carte shiny' : 'Carte normale';
+    });
+    // reset état de manche
+    cards.forEach(card => {
+      card.classList.remove('revealed', 'win', 'lose');
+      card.disabled = false;
+    });
+    if (statusEl) statusEl.textContent = '';
+  }
+
+  // Attend la fin de la rotation uniquement pour les cartes qui étaient retournées
+  function waitFlipBackForFlippedOnes(prevFlippedSet) {
+    const waiters = [];
+
+    cards.forEach(card => {
+      const inner = card.querySelector('.card-inner');
+      if (!inner) return;
+
+      // On ne surveille QUE les cartes qui étaient vraiment flipped avant reset
+      if (!prevFlippedSet.has(card)) return;
+
+      waiters.push(new Promise(resolve => {
+        let settled = false;
+
+        const onEnd = (e) => {
+          if (e.propertyName !== 'transform') return;
+          if (settled) return;
+          settled = true;
+          inner.removeEventListener('transitionend', onEnd);
+          resolve();
+        };
+
+        // Fallback de sécurité si transitionend ne remonte pas
+        const t = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          inner.removeEventListener('transitionend', onEnd);
+          resolve();
+        }, FLIP_MS + 30); // petite marge
+
+        inner.addEventListener('transitionend', onEnd, { once: true });
+
+        // Si, pour une raison quelconque, il n'y a pas de transition active, on fallback vite
+        const cs = getComputedStyle(inner);
+        if (cs.transitionDuration === '0s') {
+          clearTimeout(t);
+          settled = true;
+          inner.removeEventListener('transitionend', onEnd);
+          resolve();
+        }
+      }));
+    });
+
+    // Si aucune carte n'était retournée, on attend juste une frame pour éviter le swap immédiat
+    if (waiters.length === 0) {
+      return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    }
+
+    return Promise.all(waiters);
+  }
+
+  function revealCard(index) {
+    cards.forEach((card, i) => {
+      const isWin = i === winningIndex;
+      card.classList.add('flipped', 'revealed', isWin ? 'win' : 'lose');
+      card.disabled = true;
+    });
+    if (statusEl) statusEl.textContent = (index === winningIndex) ? 'Gagné ! ✨' : 'Raté…';
+  }
+
+  function initGame() {
+    // --- 0) snapshot : quelles cartes étaient vraiment flipped ?
+    const previouslyFlipped = new Set(cards.filter(c => c.classList.contains('flipped')));
+
+    // --- 1) masquage visuel de précaution + demande de flip‑back
+    cards.forEach(card => {
+      const img = card.querySelector('.card-img');
+      if (img) img.style.visibility = 'hidden';
+      card.classList.remove('flipped', 'revealed', 'win', 'lose');
+      card.disabled = false;
+    });
+
+    // --- 2) attendre la fin du flip‑back EFFECTIF (ou timeout de secours)
+    waitFlipBackForFlippedOnes(previouslyFlipped)
+      .then(() => {
+        // Attendre encore 1 frame pour garantir un repaint côté dos
+        requestAnimationFrame(() => {
+          // --- 3) maintenant seulement : tirage + swap d'images
+          assignImages();
+
+          // --- 4) ré‑afficher les images
+          cards.forEach(card => {
+            const img = card.querySelector('.card-img');
+            if (img) img.style.visibility = 'visible';
+          });
+        });
+      });
+  }
+
+  // Clic utilisateur sur une carte
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => revealCard(i));
+  });
+
+  // Bouton Rejouer
+  replayBtn.addEventListener('click', initGame);
+
+  // Démarrage quand l’onglet Mini‑jeu devient visible
+  const observer = new MutationObserver(() => {
+    if (panel.classList.contains('visible')) initGame();
+  });
+  observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
+  // Cas où le panel est déjà visible au chargement
+  if (panel.classList.contains('visible')) initGame();
+})();
+
