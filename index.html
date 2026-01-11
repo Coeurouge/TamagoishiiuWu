@@ -279,28 +279,37 @@
         return pool.slice(0, 2);
       }
 
-      function initGame() {
-        winningIndex = Math.floor(Math.random() * 3);
-        locked = false;
-        statusEl.textContent = "le choix est difficile ?";
+function initGame() {
+  winningIndex = Math.floor(Math.random() * 3);
+  locked = false;
+  statusEl.textContent = "le choix est difficile ?";
 
-        const normals = pickTwoDistinctNormalImages();
-        const cards = grid.querySelectorAll('.card');
+  const cards = grid.querySelectorAll('.card');
 
-        cards.forEach((card, idx) => {
-          const img = card.querySelector('.card-img');
-          const src = (idx === winningIndex)
-            ? `${IMG_PATH}/shiny.${IMG_EXT}`
-            : normals.pop();
+  // 1️⃣ Cache immédiatement toutes les cartes
+  cards.forEach(card => {
+    card.classList.remove('flipped', 'revealed', 'win', 'lose');
+    card.disabled = true;
+  });
 
-          img.src = src;
-          img.alt = (idx === winningIndex) ? "Carte shiny" : "Carte";
+  // 2️⃣ Attendre la fin de l’animation de flip
+  setTimeout(() => {
+    const normals = pickTwoDistinctNormalImages();
 
-          card.classList.remove('flipped', 'revealed', 'win', 'lose');
-          card.disabled = false;
-          card.dataset.index = String(idx);
-        });
-      }
+    cards.forEach((card, idx) => {
+      const img = card.querySelector('.card-img');
+      const src = (idx === winningIndex)
+        ? `${IMG_PATH}/shiny.${IMG_EXT}`
+        : normals.pop();
+
+      img.src = src;
+      img.alt = (idx === winningIndex) ? "Carte shiny" : "Carte";
+
+      card.disabled = false;
+      card.dataset.index = String(idx);
+    });
+  }, 450); // légèrement > 420ms (durée CSS)
+}
 
       function reveal(clickedCard) {
         if (locked) return;
