@@ -215,18 +215,19 @@ h2 { font-size: 1.6rem; }
 }
 .card-face.front {
   transform: rotateY(180deg);
-  position: relative; /* pour les effets ::before/::after */
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  background: #0f1122; /* fond si image plus petite */
+  border-radius: 12px;
+  background: #0f1122;
+  padding: 0;
 }
 
-/* Image de face */
 .card-face.front .card-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 12px;
   display: block;
+  object-fit: cover;
 }
 
 /* Perdu : un léger feedback visuel */
