@@ -314,10 +314,19 @@ h2 { font-size: 1.6rem; }
 
 .hero video {
   width: 100%;
-  max-width: 640px;
+  max-width: 420px;   /* ⬅️ LA clé : ajuste ici (380–480 selon ton goût) */
+  height: auto;
   border-radius: 16px;
   border: 1px solid #2a2e44;
   display: block;
   margin: 0 auto;
+  background: #0f1122;
 }
+@media (max-width: 640px) {
+  .hero video {
+    max-width: 300px;
+  }
+}
+
+
 
