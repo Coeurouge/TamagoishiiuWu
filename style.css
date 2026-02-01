@@ -312,36 +312,25 @@ h2 { font-size: 1.6rem; }
   }
 }
 
-/* ===== HERO VIDEO : version stable desktop + mobile ===== */
-.hero {
-  overflow: hidden;
-}
-
+/* ===== HERO VIDEO : ratio verrouillé (anti bandes rouges) ===== */
 .hero-media {
   width: 100%;
-  max-width: 340px;        /* taille maîtrisée */
+  max-width: 340px;
   margin: 0 auto;
-  padding: 0;
-  border: none;
-}
-
-.hero-media video {
-  display: block;
-  width: 100%;
-  height: auto;
+  aspect-ratio: 16/9;     /* 🔑 adapte si ta vidéo est horizontale */
+  overflow: hidden;
   border-radius: 16px;
-  border: none;            /* ⬅️ enlève toute bordure rouge */
-  outline: none;
-  box-shadow: none;
   background: #0f1122;
 }
 
-/* 📱 Mobile : prend la largeur dispo sans déborder */
-@media (max-width: 640px) {
-  .hero-media {
-    max-width: 100%;
-  }
+.hero-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;        /* 🔑 supprime les bandes */
+  display: block;
+  border: none;
 }
+
 
 
 
