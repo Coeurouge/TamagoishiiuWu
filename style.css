@@ -312,23 +312,30 @@ h2 { font-size: 1.6rem; }
   }
 }
 
-/* ===== HERO VIDEO : ratio verrouillé (anti bandes rouges) ===== */
-.hero-media {
+.hero-media{
   width: 100%;
-  max-width: 340px;
+  max-width: 640px;        /* plus logique sur PC */
   margin: 0 auto;
-  aspect-ratio: 16/9;     /* 🔑 adapte si ta vidéo est horizontale */
+  aspect-ratio: 16 / 9;    /* ✅ paysage */
   overflow: hidden;
   border-radius: 16px;
   background: #0f1122;
+  border: none;            /* ✅ enlève le rouge si c’était un border */
+  outline: none;
 }
 
-.hero-media video {
+.hero-media video{
   width: 100%;
   height: 100%;
-  object-fit: cover;        /* 🔑 supprime les bandes */
   display: block;
+  object-fit: contain;     /* ✅ pas de crop (tout est visible) */
   border: none;
+  outline: none;
+}
+
+/* Mobile : tu peux garder plus petit si tu veux */
+@media (max-width: 640px){
+  .hero-media{ max-width: 100%; }
 }
 
 
