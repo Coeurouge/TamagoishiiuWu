@@ -329,7 +329,7 @@ h2 { font-size: 1.6rem; }
   height: auto;
   display: block;
   border-radius: 16px;
-  border: 1px solid #2a2e44;
+  
 }
 
 @media (max-width: 640px) {
