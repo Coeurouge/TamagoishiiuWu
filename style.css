@@ -312,18 +312,32 @@ h2 { font-size: 1.6rem; }
   }
 }
 
+/* ✅ Vidéo hero : mobile-safe */
+.hero {
+  overflow: hidden;          /* empêche tout débordement */
+}
+
 .hero-media {
+  width: 100%;
   max-width: 360px;
   margin: 0 auto;
 }
 
 .hero-media video {
   width: 100%;
+  max-width: 100%;
   height: auto;
   display: block;
   border-radius: 16px;
   border: 1px solid #2a2e44;
 }
+
+@media (max-width: 640px) {
+  .hero-media {
+    max-width: 100%;
+  }
+}
+
 
 
 
