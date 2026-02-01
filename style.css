@@ -312,26 +312,31 @@ h2 { font-size: 1.6rem; }
   }
 }
 
-/* ✅ Vidéo hero : mobile-safe */
+/* ===== HERO VIDEO : version stable desktop + mobile ===== */
 .hero {
-  overflow: hidden;          /* empêche tout débordement */
+  overflow: hidden;
 }
 
 .hero-media {
   width: 100%;
-  max-width: 360px;
+  max-width: 340px;        /* taille maîtrisée */
   margin: 0 auto;
+  padding: 0;
+  border: none;
 }
 
 .hero-media video {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
   display: block;
+  width: 100%;
+  height: auto;
   border-radius: 16px;
-  
+  border: none;            /* ⬅️ enlève toute bordure rouge */
+  outline: none;
+  box-shadow: none;
+  background: #0f1122;
 }
 
+/* 📱 Mobile : prend la largeur dispo sans déborder */
 @media (max-width: 640px) {
   .hero-media {
     max-width: 100%;
