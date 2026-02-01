@@ -312,15 +312,17 @@ h2 { font-size: 1.6rem; }
   }
 }
 
+.hero { 
+  overflow: hidden; 
+}
+
 .hero video {
-  width: auto;          /* ⬅️ clé : on arrête le full-width */
-  max-width: 360px;     /* taille maîtrisée */
-  height: auto;
-  border-radius: 16px;
-  border: 1px solid #2a2e44;
-  display: block;
-  margin: 1rem auto;    /* espace + centrage */
-  background: #0f1122;
+  width: 360px !important;
+  max-width: 360px !important;
+  height: auto !important;
+  outline: 4px solid red !important;  /* juste pour vérifier que la règle s'applique */
+  display: block !important;
+  margin: 1rem auto !important;
 }
 
 
