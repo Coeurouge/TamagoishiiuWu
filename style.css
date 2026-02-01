@@ -312,17 +312,17 @@ h2 { font-size: 1.6rem; }
   }
 }
 
-.hero { 
-  overflow: hidden; 
+.hero-media {
+  max-width: 360px;
+  margin: 0 auto;
 }
 
-.hero video {
-  width: 360px !important;
-  max-width: 360px !important;
-  height: auto !important;
-  outline: 4px solid red !important;  /* juste pour vérifier que la règle s'applique */
-  display: block !important;
-  margin: 1rem auto !important;
+.hero-media video {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid #2a2e44;
 }
 
 
